@@ -194,7 +194,7 @@ class DB
 		}
 		if (!DB::Exists()) { throw new \Exception("Couldn't connect to database"); }
 		$db_version = DB::Version();
-		if ($version >= $db_version){ throw new \Exception("Can't migrate down from database version ".$db_version." to app version $version.  If you believe the database is actually a different version than this, you can edit the dbversion table in your database manually");
+		if ($version >= $db_version){ throw new \Exception("Can't migrate down from database version ".$db_version." to app version $version.  If you believe the database is actually a different version than this, you can edit the dbversion table in your database manually"); }
 		require_once($_ENV["docroot"]."apps/".$app."/db/migrations.php");
 		$class_name = "\\".$app."\\".$app."Migrations";
 		while($db_version > $version)
