@@ -16,7 +16,7 @@
 			foreach($apps as $app)
 			{
 				$filepath = $_ENV['docroot'].'apps/'.$app.'/'.$app.'Application.php';
-				if (!is_file($filepath)){ throw new Exception("No app file found for $app at $filepath"); }
+				if (!is_file($filepath)){ throw new \Exception("No app file found for $app at $filepath"); }
 				require_once($filepath);
 				$app_classname = $app.'\\'.$app.'Application';
 				$app_instance = new $app_classname($app);
