@@ -3,6 +3,74 @@
 namespace HappyPuppy;
 class DB
 {
+	public static function CreateUserAndDB($rootdb, $username, $password, $dbname)
+	{
+		$sql = "
+			CREATE USER '".$username."'@'%' IDENTIFIED BY '".$password."';
+			GRANT USAGE ON * . * TO '".$username."'@'%' IDENTIFIED BY '".$password."' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0 ;
+			CREATE DATABASE IF NOT EXISTS `".$dbname."` ;
+			GRANT ALL PRIVILEGES ON `".$dbname."` . * TO '".$username."'@'%';
+		";
+		$rootdb->exec($sql);
+	}
+	public static function DropUserAndDB($rootdb, $username, $dbname)
+	{
+		$sql = "
+			DROP USER '".$username."'@'%';
+			DROP DATABASE IF EXISTS `".$dbname."` ;
+		";
+		$rootdb->exec($sql);
+	}
+	public static function CreateTable($tablename, $columns)
+	{
+		$sql = "
+			CREATE TABLE `".$tablename."` (
+				`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,";
+		foreach($columns as $name=>$type){
+			$sql .= DB::ColumnSQL($name, $type);
+			$sql .= " , ";
+		}
+		$sql = substr($sql, 0, strlen($sql) - 2);
+		$sql .= ") ENGINE = MYISAM ;";
+		DB::Exec($sql);
+	}
+	private static function ColumnSQL($name, $type)
+	{
+		$sql = "`".$name."` ";
+		if (strcasecmp($type, "string") == 0){
+			$sql .= "VARCHAR(255) NOT NULL ";
+		} else if (strcasecmp($type, "int") == 0){
+			$sql .= "INT NOT NULL ";
+		} else if (strcasecmp($type, "bool") == 0 || strcasecmp($type, "boolean") == 0){
+			$sql .= "TINYINT NOT NULL ";
+		} else if (strcasecmp($type, "text") == 0){
+			$sql .= "TEXT NOT NULL ";
+		} else if (strcasecmp($type, "date") == 0){
+			$sql .= "DATE NOT NULL ";
+		} else if (strcasecmp($type, "datetime") == 0){
+			$sql .= "DATETIME NOT NULL ";
+		} else if (strcasecmp($type, "float") == 0){
+			$sql .= "FLOAT NOT NULL ";
+		} else {
+			$sql .= $type;
+		}
+		return $sql;
+	}
+	public static function DropTable($tablename)
+	{
+		$sql = "DROP TABLE `".$tablename."` ";
+		DB::Exec($sql);
+	}
+	public static function AddColumn($tablename, $colname, $coltype)
+	{
+		$sql = "ALTER TABLE `".$tablename."` ADD ".DB::ColumnSQL($colname, $coltype);
+		DB::Exec($sql);
+	}
+	public static function DropColumn($tablename, $colname)
+	{
+		$sql = "ALTER TABLE `".$tablename."` DROP `".$colname."`";
+		DB::Exec($sql);
+	}
 	public static function LoadDB($app)
 	{
 		if (file_exists($_ENV["docroot"]."config/DBConf.php"))
