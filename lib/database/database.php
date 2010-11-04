@@ -149,6 +149,7 @@ class DB
 		}
 		return $cur;
 	}
+	// Test
 	static function MigrateUpTo($version)
 	{
 		if ($_ENV['config']['env'] != Environment::DEV)
