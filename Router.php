@@ -66,7 +66,7 @@
 			$app_classname = $route->app.'\\'.$route->appClassname();
 			$_ENV["app"] = new $app_classname($route->app);
 			// load the database
-			DB::LoadDB($route->app);
+			DBConnection::SetDB($route->app);
 			$_ENV["app"]->__baseinit();
 			if(method_exists($_ENV["app"], "__init")){
 				$_ENV["app"]->__init();

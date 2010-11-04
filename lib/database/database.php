@@ -1,230 +1,23 @@
 <?
 
 namespace HappyPuppy;
+require("DBMigration.php");
+require("DBConnection.php");
+require("DBMigrationExec.php");
 class DB
 {
-	public static function CreateUserAndDB($rootdb, $username, $password, $dbname)
-	{
-		$sql = "
-			CREATE USER '".$username."'@'%' IDENTIFIED BY '".$password."';
-			GRANT USAGE ON * . * TO '".$username."'@'%' IDENTIFIED BY '".$password."' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0 ;
-			CREATE DATABASE IF NOT EXISTS `".$dbname."` ;
-			GRANT ALL PRIVILEGES ON `".$dbname."` . * TO '".$username."'@'%';
-		";
-		$rootdb->exec($sql);
+	static function RootQuery($sql){
+		$rootdb = DBConnection::GetRootDB();
+		return DB::wQuery($rootdb, $sql);
 	}
-	public static function DropUserAndDB($rootdb, $username, $dbname)
-	{
-		$sql = "
-			DROP USER '".$username."'@'%';
-			DROP DATABASE IF EXISTS `".$dbname."` ;
-		";
-		$rootdb->exec($sql);
+	static function AppQuery($app, $sql){
+		$appdb = DBConnection::GetDB($app);
+		return DB::wQuery($appdb, $sql);
 	}
-	public static function CreateTable($tablename, $columns)
-	{
-		$sql = "
-			CREATE TABLE `".$tablename."` (
-				`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,";
-		foreach($columns as $name=>$type){
-			$sql .= DB::ColumnSQL($name, $type);
-			$sql .= " , ";
-		}
-		$sql = substr($sql, 0, strlen($sql) - 2);
-		$sql .= ") ENGINE = MYISAM ;";
-		DB::Exec($sql);
+	static function query($sql){
+		global $db; return DB::wQuery($db, $sql);
 	}
-	private static function ColumnSQL($name, $type)
-	{
-		$sql = "`".$name."` ";
-		if (strcasecmp($type, "string") == 0){
-			$sql .= "VARCHAR(255) NOT NULL ";
-		} else if (strcasecmp($type, "int") == 0){
-			$sql .= "INT NOT NULL ";
-		} else if (strcasecmp($type, "bool") == 0 || strcasecmp($type, "boolean") == 0){
-			$sql .= "TINYINT NOT NULL ";
-		} else if (strcasecmp($type, "text") == 0){
-			$sql .= "TEXT NOT NULL ";
-		} else if (strcasecmp($type, "date") == 0){
-			$sql .= "DATE NOT NULL ";
-		} else if (strcasecmp($type, "datetime") == 0){
-			$sql .= "DATETIME NOT NULL ";
-		} else if (strcasecmp($type, "float") == 0){
-			$sql .= "FLOAT NOT NULL ";
-		} else {
-			$sql .= $type;
-		}
-		return $sql;
-	}
-	public static function DropTable($tablename)
-	{
-		$sql = "DROP TABLE `".$tablename."` ";
-		DB::Exec($sql);
-	}
-	public static function AddColumn($tablename, $colname, $coltype)
-	{
-		$sql = "ALTER TABLE `".$tablename."` ADD ".DB::ColumnSQL($colname, $coltype);
-		DB::Exec($sql);
-	}
-	public static function DropColumn($tablename, $colname)
-	{
-		$sql = "ALTER TABLE `".$tablename."` DROP `".$colname."`";
-		DB::Exec($sql);
-	}
-	public static function LoadDB($app)
-	{
-		if (file_exists($_ENV["docroot"]."config/DBConf.php"))
-		{
-			require_once($_ENV["docroot"]."config/DBConf.php");
-			$method_name = $app."DBInit";
-			if (method_exists("\HappyPuppy\DBConf", $method_name))
-			{
-				DBConf::$method_name();
-			}
-		}
-	}
-	public static function MigrateDB($app, $version)
-	{
-		if ($_ENV['config']['env'] != Environment::DEV){ throw new \Exception('You tried to migrate your application while not in Development mode.  Set your environment $_ENV[\'config\'][\'env\'] to Environment::DEV in /config/hp.php'); }
-		if (!DB::Exists()){ throw new \Exception("Can't connect to DB"); }
-		if ($db_version > $version)
-		{
-			MigrateDownTo($version);
-		}
-		else if ($db_version < $version)
-		{
-			MigrateUpTo($version);
-		}
-		else
-		{
-			// nothing to do, database already is this version
-		}
-	}
-	static function Exists()
-	{
-		global $db;
-		return ($db != null);
-	}
-	static function Version($set_to_version = null)
-	{
-		if ($set_to_version == null)
-		{
-			$results = DB::query("select * from dbversion");
-			if (count($results) == 0)
-			{
-				$sql = "CREATE TABLE `dbversion` (`version` INT NOT NULL) ENGINE = MYISAM ;";
-				DB::exec($sql);
-				$sql = "INSERT INTO `dbversion` (`version`)VALUES ('0');";
-				DB::exec($sql);
-			}
-			$results = DB::query("select * from dbversion");
-			$version = reset(reset($results));
-			return $version;
-		}
-		else
-		{
-			$sql = "UPDATE `dbversion` SET version=".$set_to_version;
-			DB::exec($sql);
-		}
-	}
-	static function HighestVersionAvailable($app)
-	{
-		if ($_ENV['config']['env'] != Environment::DEV)
-		{
-			return 0;
-		}
-		require_once($_ENV["docroot"]."apps/".$app."/db/migrations.php");
-		$class_name = "\\".$app."\\".$app."Migrations";
-		$cur = 0;
-		$done = false;
-		while (!$done)
-		{
-			$next = $cur + 1;
-			if (method_exists($class_name, "From$curTo$next"))
-			{
-				$cur++;
-			} else {
-				$done = true;
-			}
-		}
-		return $cur;
-	}
-	// Test
-	static function MigrateUpTo($version)
-	{
-		if ($_ENV['config']['env'] != Environment::DEV)
-		{
-			throw new \Exception('You tried to migrate your application while not in Development mode.  Set your environment $_ENV[\'config\'][\'env\'] to Environment::DEV in /config/hp.php');
-		}
-		if (!DB::Exists()) { throw new \Exception("Couldn't connect to database"); }
-		$db_version = DB::Version();
-		if ($version <= $db_version){ throw new \Exception("Can't migrate up from database version ".$db_version." to app version $version.  If you believe the database is actually a different version than this, you can edit the dbversion table in your database manually"); }
-		require_once($_ENV["docroot"]."apps/".$app."/db/migrations.php");
-		$class_name = "\\".$app."\\".$app."Migrations";
-		while($db_version < $version)
-		{
-			$db_version;
-			$next_version = $db_version + 1;
-			$class_name = "\\".$app."\\".$app."Migrations";
-			$method_name = "From".$db_version."To".$next_version;
-			if (method_exists($class_name, $method_name))
-			{
-				$result = $class_name::$method_name();
-				if (!$result)
-				{
-					throw new \Exception("Migration ".$next_version." failed for ".$app);
-				}
-				else
-				{
-					$db_version = $next_version;
-					DB::Version($db_version);
-				}
-			}
-			else
-			{
-				throw new \Exception("Tried to load migration from class $class_name, but couldn't find a method named $method_name");
-			}
-		}
-	}
-	static function MigrateDownTo($version)
-	{
-		if ($_ENV['config']['env'] != Environment::DEV)
-		{
-			throw new \Exception('You tried to migrate your application while not in Development mode.  Set your environment $_ENV[\'config\'][\'env\'] to Environment::DEV in /config/hp.php');
-		}
-		if (!DB::Exists()) { throw new \Exception("Couldn't connect to database"); }
-		$db_version = DB::Version();
-		if ($version >= $db_version){ throw new \Exception("Can't migrate down from database version ".$db_version." to app version $version.  If you believe the database is actually a different version than this, you can edit the dbversion table in your database manually"); }
-		require_once($_ENV["docroot"]."apps/".$app."/db/migrations.php");
-		$class_name = "\\".$app."\\".$app."Migrations";
-		while($db_version > $version)
-		{
-			$db_version;
-			$next_version = $db_version - 1;
-			$class_name = "\\".$app."\\".$app."Migrations";
-			$method_name = "From".$db_version."To".$next_version;
-			if (method_exists($class_name, $method_name))
-			{
-				$result = $class_name::$method_name();
-				if (!$result)
-				{
-					throw new \Exception("Migration ".$next_version." failed for ".$app);
-				}
-				else
-				{
-					$db_version = $next_version;
-					DB::Version($db_version);
-				}
-			}
-			else
-			{
-				throw new \Exception("Tried to load migration from class $class_name, but couldn't find a method named $method_name");
-			}
-		}
-	}
-	static function query($sql)
-	{
-		global $db;
+	private static function wQuery($db, $sql) {
 		$stmt = $db->prepare($sql);
 		$stmt->execute();
 		$arr = array();
@@ -234,9 +27,18 @@ class DB
 		}
 		return stripslashes_deep($arr);
 	}
-	static function exec($sql)
-	{
-		global $db;
+	static function RootExec($sql){
+		$rootdb = DBConnection::GetRootDB();
+		return DB::wExec($rootdb, $sql);
+	}
+	static function appExec($app, $sql){
+		$appdb = DBConnection::GetDB($app);
+		return DB::wExec($appdb, $sql);
+	}
+	static function exec($sql){
+		global $db; return DB::wExec($db, $sql);
+	}
+	private static function wExec($db, $sql){
 		$db->exec($sql);
 		return true; // $db->exec incorrectly returns 0 when 1 row is affected
 	}
