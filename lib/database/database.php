@@ -166,8 +166,8 @@ class DB
 			$db_version;
 			$next_version = $db_version + 1;
 			$class_name = "\\".$app."\\".$app."Migrations";
-			$method_name = $class_name, "From".$db_version."To".$next_version;
-			if (method_exists($method_name))
+			$method_name = "From".$db_version."To".$next_version;
+			if (method_exists($class_name, $method_name))
 			{
 				$result = $class_name::$method_name();
 				if (!$result)
