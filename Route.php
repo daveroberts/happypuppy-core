@@ -1,5 +1,5 @@
 <?php
-	namespace HappyPuppy;
+	namespace HappyPuppy; // Woof!
 	require_once('Controller.php');
 	class Route
 	{
