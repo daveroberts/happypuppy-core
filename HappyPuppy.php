@@ -64,7 +64,7 @@ class HappyPuppy
 		{
 			if ($_ENV['config']['env'] == Environment::DEV)
 			{
-				require($_ENV["docroot"].$_ENV['config']["route_not_found_page_debug"]);
+				require($_ENV["docroot"].$_ENV['config']["route_not_found_page_dev"]);
 			}
 			else
 			{

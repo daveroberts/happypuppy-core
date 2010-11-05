@@ -4,9 +4,9 @@ namespace HappyPuppy;
 class sqlFinder
 {
 	private $_dbo;
-	function __construct($dbobject)
+	function __construct($model)
 	{
-		$this->_dbo = $dbobject;
+		$this->_dbo = $model;
 	}
 	public function find($args, $debug = false)
 	{

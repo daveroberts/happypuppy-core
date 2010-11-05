@@ -7,9 +7,9 @@ class hasManyRelation extends Relation
 	var $foreign_table;
 	var $foreign_key;
 	
-	function __construct($dbobject, $name, $sort_by='', $foreign_class='', $foreign_table = '',$foreign_key = '')
+	function __construct($model, $name, $sort_by='', $foreign_class='', $foreign_table = '',$foreign_key = '')
 	{
-		$refl = new \ReflectionClass(get_class($dbobject));
+		$refl = new \ReflectionClass(get_class($model));
 		if (strcmp($foreign_class, '') == 0) {
 			$foreign_class = $refl->getNamespaceName()."\\".Inflector::singular(Inflector::remove_underscores($name));
 		}

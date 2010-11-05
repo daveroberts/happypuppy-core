@@ -7,6 +7,7 @@ class DBMigrationExec
 	{
 		if ($_ENV['config']['env'] != Environment::DEV){ throw new \Exception('You tried to migrate your application while not in Development mode.  Set your environment $_ENV[\'config\'][\'env\'] to Environment::DEV in /config/hp.php'); }
 		$db_version = DBMigrationExec::Version($app);
+		//print("DB Version: ".$db_verison." Target version: ".$version); exit();
 		if ($db_version > $version)
 		{
 			DBMigrationExec::MigrateDownTo($app, $version);
@@ -25,14 +26,7 @@ class DBMigrationExec
 		$dbname = DBConnection::GetDBName($app);
 		if ($set_to_version == null)
 		{
-			$results = DB::RootQuery("select * from ".$dbname.".dbversion");
-			if (count($results) == 0)
-			{
-				$sql = "CREATE TABLE ".$dbname.".`dbversion` (`version` INT NOT NULL) ENGINE = MYISAM ;";
-				DB::RootExec($sql);
-				$sql = "INSERT INTO ".$dbname.".`dbversion` (`version`)VALUES ('0');";
-				DB::RootExec($sql);
-			}
+			DBMigrationExec::CreateVersionTableIfNotExists($dbname);
 			$results = DB::RootQuery("select * from ".$dbname.".dbversion");
 			$row = reset($results);
 			if ($row == null){ return 0; }
@@ -41,7 +35,19 @@ class DBMigrationExec
 		}
 		else
 		{
+			DBMigrationExec::CreateVersionTableIfNotExists($dbname);
 			$sql = "UPDATE ".$dbname.".`dbversion` SET version=".$set_to_version;
+			DB::RootExec($sql);
+		}
+	}
+	private static function CreateVersionTableIfNotExists($dbname)
+	{
+		$results = DB::RootQuery("select * from ".$dbname.".dbversion");
+		if (count($results) == 0)
+		{
+			$sql = "CREATE TABLE ".$dbname.".`dbversion` (`version` INT NOT NULL) ENGINE = MYISAM ;";
+			DB::RootExec($sql);
+			$sql = "INSERT INTO ".$dbname.".`dbversion` (`version`)VALUES ('0');";
 			DB::RootExec($sql);
 		}
 	}
@@ -114,8 +120,10 @@ class DBMigrationExec
 			$method_name = "From".$db_version."To".$next_version;
 			if (method_exists($class_name, $method_name))
 			{
+				print("Migrating down: ".$class_name."-".$method_name); 
 				$result = $class_name::$method_name();
 				$db_version = $next_version;
+				print("Changing to ".$db_version." ");
 				DBMigrationExec::Version($app, $db_version);
 			}
 			else

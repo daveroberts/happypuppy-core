@@ -6,8 +6,8 @@ require_once('RelationCollection.php');
 
 class HasOneRelations extends RelationCollection
 {
-	function __construct($dbobject){
-		parent::__construct($dbobject, false);
+	function __construct($model){
+		parent::__construct($model, false);
 	}
 	public function doBuildRelation($name){
 		$relation = $this->_relations[$name];
@@ -16,14 +16,14 @@ class HasOneRelations extends RelationCollection
 		$foreign_class = $relation->foreign_class;
 		$foreign_key = $relation->foreign_key;
 		$foreign_key_value = '';
-		$foreign_key_value = $this->_dbobject->$foreign_key;
+		$foreign_key_value = $this->_model->$foreign_key;
 		if ($foreign_key_value == null)
 		{
 			return null;
 		}
 		$obj = new $foreign_class();
 		$sql = "SELECT a.* FROM ".$foreign_table." a ";
-		$pk_string = $this->_dbobject->pk;
+		$pk_string = $this->_model->pk;
 		$pk_foreign = $obj->pk;
 		$sql .=" WHERE a.".$pk_foreign."='".$foreign_key_value."' ";
 		$db_results = DB::query($sql);
@@ -64,11 +64,11 @@ class HasOneRelations extends RelationCollection
 		$foreign_table = $relation->foreign_table;
 		$foreign_class = $relation->foreign_class;
 		$foreign_key = $relation->foreign_key;
-		$tablename = $this->_dbobject->tablename;
-		$pk_col = $this->_dbobject->pk;
-		$pk_val = $this->_dbobject->$pk_col;
+		$tablename = $this->_model->tablename;
+		$pk_col = $this->_model->pk;
+		$pk_val = $this->_model->$pk_col;
 		
-		/*$sql = "SELECT t.".$foreign_key." FROM ".$this->_dbobject->tablename." t where t.".$pk_col." = ".$pk_val;
+		/*$sql = "SELECT t.".$foreign_key." FROM ".$this->_model->tablename." t where t.".$pk_col." = ".$pk_val;
 		$db_results = DB::query($sql);
 		$old_id = $db_results[0][$foreign_key];*/
 
@@ -86,9 +86,9 @@ class HasOneRelations extends RelationCollection
 	}
 	public function destroy($destroy_dependents){
 		foreach($this->_relations as $relation){
-			$tablename = $this->_dbobject->tablename;
-			$pk = $this->_dbobject->pk;
-			$pk_value = $this->_dbobject->pkval;
+			$tablename = $this->_model->tablename;
+			$pk = $this->_model->pk;
+			$pk_value = $this->_model->pkval;
 			$foreign_key = $relation->foreign_key;
 
 			$sql = "UPDATE $tablename SET $foreign_key = null where $pk = ".addslashes($pk_value)." LIMIT 1";

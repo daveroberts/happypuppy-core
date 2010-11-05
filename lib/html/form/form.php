@@ -3,7 +3,7 @@
 namespace HappyPuppy;
 class form
 {
-	private $model; // a dbobject
+	private $model;
 
 	function __construct($model){
 		if ($model == null){ throw new Exception("The model passed to the form is null"); }

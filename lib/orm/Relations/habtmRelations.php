@@ -6,8 +6,8 @@ require_once('RelationCollection.php');
 
 class HabtmRelations extends RelationCollection
 {
-	function __construct($dbobject){
-		parent::__construct($dbobject, true);
+	function __construct($model){
+		parent::__construct($model, true);
 	}
 	protected function doBuildRelation($name){
 		$relation = $this->_relations[$name];
@@ -18,9 +18,9 @@ class HabtmRelations extends RelationCollection
 		$link_table_fk_here = $relation->link_table_fk_here;
 		$link_table_fk_foreigntable = $relation->link_table_fk_foreigntable;
 		$foreign_table_pk = $relation->foreign_table_pk;
-		$cur_object_tablename = $this->_dbobject->tablename;
-		$pk = $this->_dbobject->pk;
-		$pk_val = $this->_dbobject->$pk;
+		$cur_object_tablename = $this->_model->tablename;
+		$pk = $this->_model->pk;
+		$pk_val = $this->_model->$pk;
 		$sql = "SELECT f.* FROM ".$foreign_table." f ";
 		$sql .=" LEFT JOIN ".$link_table." fp ON f.".$foreign_table_pk.'=fp.'.$link_table_fk_foreigntable." ";
 		$sql .=" LEFT JOIN ".$cur_object_tablename." p ON fp.".$link_table_fk_here.'=p.'.$pk." ";
@@ -72,8 +72,8 @@ class HabtmRelations extends RelationCollection
 		// get the old habtm IDs
 		$old_ids = array();
 		
-		$this_pk_col = $this->_dbobject->pk;
-		$this_pk_val = $this->_dbobject->$this_pk_col;
+		$this_pk_col = $this->_model->pk;
+		$this_pk_val = $this->_model->$this_pk_col;
 		$link_here_col = $relation->link_table_fk_here;
 		$link_foreign_col = $relation->link_table_fk_foreigntable;
 		$link_table = $relation->link_table;
@@ -107,8 +107,8 @@ class HabtmRelations extends RelationCollection
 		// Update the entries which where not already pointing here
 		$gen_obj = new $relation->foreign_class();
 		$foreign_pk_col = $gen_obj->pk;
-		$this_pk_col = $this->_dbobject->pk;
-		$this_pk_val = $this->_dbobject->$this_pk_col;
+		$this_pk_col = $this->_model->pk;
+		$this_pk_val = $this->_model->$this_pk_col;
 		foreach($new_ids as $new_id)
 		{
 			$sql = "INSERT INTO ".$relation->link_table." ";
@@ -123,7 +123,7 @@ class HabtmRelations extends RelationCollection
 	}
 	public function destroy($destroy_dependents){
 		foreach($this->_relations as $relation){
-			$this_pk_val = $this->_dbobject->pkval;
+			$this_pk_val = $this->_model->pkval;
 			$link_here_col = $relation->link_table_fk_here;
 			$link_table = $relation->link_table;
 

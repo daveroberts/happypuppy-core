@@ -3,14 +3,14 @@
 namespace HappyPuppy;
 class Fields
 {
-	private $_dbobject;
+	private $_model;
 	private $_pk;
 	private $_db_field_values = array();  // just use getters and setters
 	private $_unique_fields = array();
 	private $_cached_field_values = array();
 
-	function __construct($dbobject){
-		$this->_dbobject = $dbobject;
+	function __construct($model){
+		$this->_model = $model;
 	}
 	public function addUniqueField($field_name, $scope_by = array(), &$error_msg = ''){
 		$this->_unique_fields[] = new UniqueFieldValidator($field_name, $scope_by, &$error_msg);
@@ -18,13 +18,13 @@ class Fields
 	public function getPK(){
 		if (!isset($this->_pk))
 		{
-			$field_structure = DB::get_field_structure($this->_dbobject->tablename);
+			$field_structure = DB::get_field_structure($this->_model->tablename);
 			$this->_pk = $field_structure["pk"];
 		}
 		return $this->_pk;
 	}
 	public function hasField($field_name){
-		$field_structure = DB::get_field_structure($this->_dbobject->tablename);
+		$field_structure = DB::get_field_structure($this->_model->tablename);
 		return array_key_exists($field_name, $field_structure["fields"]);
 	}
 	public function getField($name){
@@ -44,11 +44,11 @@ class Fields
 		$this->_cached_field_values[$name] = $value;
 	}
 	private function fieldNames(){
-		$field_structure = DB::get_field_structure($this->_dbobject->tablename);
+		$field_structure = DB::get_field_structure($this->_model->tablename);
 		return array_keys($field_structure["fields"]);
 	}
 	private function isDateField($name){
-		$field_structure = DB::get_field_structure($this->_dbobject->tablename);
+		$field_structure = DB::get_field_structure($this->_model->tablename);
 		$type = $field_structure["fields"][$name];
 		return $type == 'date';
 	}
@@ -90,13 +90,13 @@ class Fields
 			if (!$before_insert_result){ return false; }
 		}
 		foreach($this->_unique_fields as $uniqueFieldValidator){
-			$before_insert_result = $uniqueFieldValidator->isUniqueInsert($this->_dbobject, $error_msg);
+			$before_insert_result = $uniqueFieldValidator->isUniqueInsert($this->_model, $error_msg);
 			if (!$before_insert_result){ return false; }
 		}
 		return true;
 	}
 	private function insert($debug = false){
-		$sql = "INSERT INTO ".$this->_dbobject->tablename." (";
+		$sql = "INSERT INTO ".$this->_model->tablename." (";
 		foreach($this->fieldNames() as $field)
 		{
 			if ($field == $this->getPK()){ continue; }
@@ -139,13 +139,13 @@ class Fields
 			if (!$before_update_result){ return false; }
 		}
 		foreach($this->_unique_fields as $uniqueFieldValidator){
-			$before_update_result = $uniqueFieldValidator->isUniqueUpdate($this->dbobject, $error_msg);
+			$before_update_result = $uniqueFieldValidator->isUniqueUpdate($this->_model, $error_msg);
 			if (!$before_update_result){ return false; }
 		}
 		return true;
 	}
 	private function update($debug = false){
-		$sql = "UPDATE ".$this->_dbobject->tablename." SET ";
+		$sql = "UPDATE ".$this->_model->tablename." SET ";
 		foreach($this->fieldNames() as $field)
 		{
 			if ($field == $this->getPK()){ continue; }
@@ -170,7 +170,7 @@ class Fields
 	}
 
 	public function delete(){
-		$sql = "DELETE FROM ".$this->_dbobject->tablename." WHERE ".$this->getPK()."='".addslashes($this->getField($this->getPK()))."' LIMIT 1";
+		$sql = "DELETE FROM ".$this->_model->tablename." WHERE ".$this->getPK()."='".addslashes($this->getField($this->getPK()))."' LIMIT 1";
 		return DB::exec($sql);
 	}
 	public function destroy(){
@@ -204,6 +204,24 @@ class Fields
 		//check weather the date is valid of not
 		if(!checkdate($month,$day,$year)) { return false; }
 		return $year.'-'.$month.'-'.$day;
+	}
+	
+	public function addXMLAttributes($doc, &$el)
+	{
+		foreach($this->fieldNames() as $field)
+		{
+			if ($field == $this->getPK())
+			{
+				$el->setAttribute($field, $this->getField($field));
+			}
+			else
+			{
+				$rel_el = $doc->createElement($field);
+				$text_node = $doc->createTextNode($this->getField($field)); 
+				$text_node = $rel_el->appendChild($text_node);
+				$rel_el = $el->appendChild($rel_el);
+			}
+		}
 	}
 }
 

@@ -3,13 +3,13 @@
 namespace HappyPuppy;
 abstract class RelationCollection
 {
-	protected $_dbobject;
+	protected $_model;
 	protected $_array_based;
 	protected $_relations;
 	protected $_cached_values;
 	protected $_dirty_marks;
-	function __construct($dbobject, $array_based){
-		$this->_dbobject = $dbobject;
+	function __construct($model, $array_based){
+		$this->_model = $model;
 		$this->_array_based = $array_based;
 		$this->_relations = array();
 		$this->_cached_values = array();

@@ -11,38 +11,38 @@ class UniqueFieldValidator
 		$this->_scope_by = $scope_by;
 		if ($error_msg != ''){ $this->_error_message = $error_msg; }
 	}
-	public function isUniqueInsert($dbobject, &$error_msg){
-		$obj_arr = $this->getObjArray($dbobject);
+	public function isUniqueInsert($model, &$error_msg){
+		$obj_arr = $this->getObjArray($model);
 		if (count($obj_arr) > 0)
 		{
 			$fn = $this->_field_name;
-			$error_msg = $this->_field_name."(".$dbobject->$fn.") ".$this->_error_message;
+			$error_msg = $this->_field_name."(".$model->$fn.") ".$this->_error_message;
 			return false;
 		}
 		return true;
 	}
-	public function isUniqueUpdate($dbobject, &$error_msg){
-		$obj_arr = $this->getObjArray($dbobject);
+	public function isUniqueUpdate($model, &$error_msg){
+		$obj_arr = $this->getObjArray($model);
 		if (count($obj_arr) == 0){ return true; }
 		if (count($obj_arr) == 1){
 			$obj = reset($obj_arr);
 			$pk = $obj->pk;
-			if ($obj->$pk == $dbobject->$pk){
+			if ($obj->$pk == $model->$pk){
 				return true;
 			}
 		}
 		$fn = $this->_field_name;
-		$error_msg = $this->_field_name."(".$dbobject->$fn.") ".$this->_error_message;
+		$error_msg = $this->_field_name."(".$model->$fn.") ".$this->_error_message;
 		return false;
 	}
-	private function getObjArray($dbobject){
+	private function getObjArray($model){
 		$fn = $this->_field_name;
-		$conditions = "$fn='".addslashes($dbobject->$fn)."'";
+		$conditions = "$fn='".addslashes($model->$fn)."'";
 		foreach($this->_scope_by as $field){
 			$fn = $field;
-			$conditions .= " AND $fn='".addslashes($dbobject->$fn)."'";
+			$conditions .= " AND $fn='".addslashes($model->$fn)."'";
 		}
-		return $dbobject->pFind(array("conditions"=>$conditions));
+		return $model->pFind(array("conditions"=>$conditions));
 	}
 }
 ?>

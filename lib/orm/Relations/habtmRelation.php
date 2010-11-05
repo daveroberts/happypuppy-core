@@ -11,7 +11,7 @@ class habtmRelation extends Relation
 	var $link_table_fk_foreigntable;
 	var $foreign_table_pk;
 	
-	function __construct($dbobject, $name, $sort_by='', $foreign_class='', $foreign_table = '', $foreign_table_pk='', $link_table = '', $link_table_fk_here = '', $link_table_fk_foreigntable = '')
+	function __construct($model, $name, $sort_by='', $foreign_class='', $foreign_table = '', $foreign_table_pk='', $link_table = '', $link_table_fk_here = '', $link_table_fk_foreigntable = '')
 	{
 		$this->name = $name;
 		$this->sort_by = $sort_by;

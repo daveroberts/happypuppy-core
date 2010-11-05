@@ -6,9 +6,9 @@ class hasOneRelation extends Relation
 	var $foreign_table;
 	var $foreign_key;
 
-	function __construct($dbobject, $name, $foreign_class='', $foreign_table = '', $foreign_key = '')
+	function __construct($model, $name, $foreign_class='', $foreign_table = '', $foreign_key = '')
 	{
-		$refl = new \ReflectionClass(get_class($dbobject));
+		$refl = new \ReflectionClass(get_class($model));
 		if (strcmp($foreign_class, '') == 0) {
 			$foreign_class = $refl->getNamespaceName()."\\".Inflector::remove_underscores($name);
 		}
@@ -19,7 +19,7 @@ class hasOneRelation extends Relation
 				$foreign_table = Inflector::remove_underscores($name);
 			}
 		}
-		if (strcmp($foreign_key, '') == 0){ $foreign_key = $foreign_table.'_id'; }
+		if (strcmp($foreign_key, '') == 0){ $foreign_key = $name.'_id'; }
 		$this->name = $name;
 		$this->foreign_class = $foreign_class;
 		$this->foreign_table = $foreign_table;

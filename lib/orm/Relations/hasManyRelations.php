@@ -6,8 +6,8 @@ require_once('RelationCollection.php');
 
 class HasManyRelations extends RelationCollection
 {
-	function __construct($dbobject){
-		parent::__construct($dbobject, true);
+	function __construct($model){
+		parent::__construct($model, true);
 	}
 	protected function doBuildRelation($name){
 		$relation = $this->_relations[$name];
@@ -15,9 +15,9 @@ class HasManyRelations extends RelationCollection
 		$foreign_table = $relation->foreign_table;
 		$foreign_class = $relation->foreign_class;
 		$foreign_key = $relation->foreign_key;
-		$tablename = $this->_dbobject->tablename;
-		$pk = $this->_dbobject->pk;
-		$pk_val = $this->_dbobject->$pk;
+		$tablename = $this->_model->tablename;
+		$pk = $this->_model->pk;
+		$pk_val = $this->_model->$pk;
 		$sql = "SELECT a.* FROM ".$foreign_table." a ";
 		$sql .=" LEFT JOIN ".$tablename." b ON a.".$foreign_key.'=b.'.$pk." ";
 		$sql .=" WHERE b.".$pk."='".$pk_val."' ";
@@ -68,8 +68,8 @@ class HasManyRelations extends RelationCollection
 		// get the old hasMany IDs
 		$old_ids = array();
 		
-		$this_pk_col = $this->_dbobject->pk;
-		$this_pk_val = $this->_dbobject->$this_pk_col;
+		$this_pk_col = $this->_model->pk;
+		$this_pk_val = $this->_model->$this_pk_col;
 		$foreign_fk_col = $relation->foreign_key;
 		$foreign_table = $relation->foreign_table;
 		$gen_obj = new $relation->foreign_class();
@@ -115,12 +115,12 @@ class HasManyRelations extends RelationCollection
 	public function destroy($destroy_dependents){
 		foreach($this->_relations as $relation_name=>$relation){
 			if ($destroy_dependents){
-				$obj_arr = $this->_dbobject->$relation_name;
+				$obj_arr = $this->_model->$relation_name;
 				foreach($obj_arr as $obj){
 					$obj->destroy();
 				}
 			} else {
-				$this_pk_val = $this->_dbobject->pkval;
+				$this_pk_val = $this->_model->pkval;
 				$foreign_fk_col = $relation->foreign_key;
 				$foreign_table = $relation->foreign_table;
 

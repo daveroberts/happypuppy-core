@@ -11,25 +11,25 @@ class Relations
 	private $_has_many;
 	private $_has_one;
 	private $_habtm;
-	private $_dbobject;
-	function __construct($dbobject){
-		$this->_dbobject = $dbobject;
-		$this->_has_many = new HasManyRelations($dbobject);
-		$this->_has_one = new HasOneRelations($dbobject);
-		$this->_habtm = new HabtmRelations($dbobject);
+	private $_model;
+	function __construct($model){
+		$this->_model = $model;
+		$this->_has_many = new HasManyRelations($model);
+		$this->_has_one = new HasOneRelations($model);
+		$this->_habtm = new HabtmRelations($model);
 	}
 	
 	// methods to add relations
 	public function addHasMany($relation_name, $sort_by='', $foreign_class='', $foreign_table = '',$foreign_key = ''){
-		$has_many_relation = new hasManyRelation($this->_dbobject, $relation_name, $sort_by, $foreign_class, $foreign_table,$foreign_key);
+		$has_many_relation = new hasManyRelation($this->_model, $relation_name, $sort_by, $foreign_class, $foreign_table,$foreign_key);
 		$this->_has_many->addRelation($has_many_relation);
 	}
 	public function addHasOne($relation_name, $foreign_class='', $foreign_table = '', $foreign_key = ''){
-		$has_one_relation = new hasOneRelation($this->_dbobject, $relation_name, $foreign_class, $foreign_table, $foreign_key);
+		$has_one_relation = new hasOneRelation($this->_model, $relation_name, $foreign_class, $foreign_table, $foreign_key);
 		$this->_has_one->addRelation($has_one_relation);
 	}
 	public function AddHabtm($relation_name, $sort_by='', $foreign_class='', $foreign_table = '', $foreign_table_pk='', $link_table = '', $link_table_fk_here = '', $link_table_fk_foreigntable = ''){
-		$habtm_relation = new habtmRelation($this->_dbobject, $relation_name, $sort_by, $foreign_class, $foreign_table, $foreign_table_pk, $link_table, $link_table_fk_here, $link_table_fk_foreigntable);
+		$habtm_relation = new habtmRelation($this->_model, $relation_name, $sort_by, $foreign_class, $foreign_table, $foreign_table_pk, $link_table, $link_table_fk_here, $link_table_fk_foreigntable);
 		$this->_habtm->addRelation($habtm_relation);
 	}
 	

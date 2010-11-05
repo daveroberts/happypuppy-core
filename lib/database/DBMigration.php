@@ -19,6 +19,7 @@ class DBMigration
 			DROP USER '".$username."'@'%';
 			DROP DATABASE IF EXISTS `".$dbname."` ;
 		";
+		print($sql);
 		DB::RootExec($sql);
 	}
 	public static function CreateTable($app, $tablename, $columns)
@@ -59,11 +60,12 @@ class DBMigration
 	public static function DropTable($app, $tablename)
 	{
 		$sql = "DROP TABLE `".$tablename."` ";
+		print($sql);
 		DB::AppExec($app, $sql);
 	}
 	public static function AddColumn($app, $tablename, $colname, $coltype)
 	{
-		$sql = "ALTER TABLE `".$tablename."` ADD ".DB::ColumnSQL($colname, $coltype);
+		$sql = "ALTER TABLE `".$tablename."` ADD ".DBMigration::ColumnSQL($colname, $coltype);
 		DB::AppExec($app, $sql);
 	}
 	public static function DropColumn($app, $tablename, $colname)

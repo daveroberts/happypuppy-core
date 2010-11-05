@@ -3,7 +3,6 @@ namespace HappyPuppy;
 require("Relations/Fields.php");
 require("UniqueFieldValidator.php");
 require("Relations/Relations.php");
-require("dbobjectCollection.php");
 require("sqlFinder.php");
 require('IdentityMap.php');
 
@@ -18,7 +17,7 @@ require('IdentityMap.php');
 //TODO form validation
 //TODO If you have a person, how to create a bank account under that person
 //FIXME return empty array if none in a many association, not null
-abstract class dbobject
+abstract class Model
 {
 	private $_tablename; // use setter to set.  Get with $obj->tablename (underscore to prevent DB field clash)
 	private $_description; // use setter to set.  Get with $obj->__description (underscore to prevent DB field clash)
@@ -167,8 +166,8 @@ abstract class dbobject
 	}
 	public static function Count($args, $debug = false){
 		$classname = get_called_class();
-		$dbobject = new $classname();
-		return $dbobject->pCount($args, $debug);
+		$model = new $classname();
+		return $model->pCount($args, $debug);
 	}
 	public function pCount($args, $debug = false){
 		$args["count"] = true;
@@ -176,16 +175,16 @@ abstract class dbobject
 	}
 	public static function Find($args, $debug = false){
 		$classname = get_called_class();
-		$dbobject = new $classname();
-		return $dbobject->pFind($args, $debug);
+		$model = new $classname();
+		return $model->pFind($args, $debug);
 	}
 	public function pFind($args, $debug = false){
 		return $this->_sqlFinder->find($args, $debug);
 	}
 	public static function FindBy($name, $val){
 		$classname = get_called_class();
-		$dbobject = new $classname();
-		return $dbobject->pFindBy($name, $val);
+		$model = new $classname();
+		return $model->pFindBy($name, $val);
 	}
 	public function pFindBy($name, $val){
 		return $this->_sqlFinder->findBy($name, $val);
@@ -240,48 +239,117 @@ abstract class dbobject
 	
 	public static function Get($pk_id){
 		$classname = get_called_class();
-		$dbobject = new $classname();
+		$model = new $classname();
 		// check identity map first
-		if (IdentityMap::is_set($dbobject->tablename, $pk_id))
+		if (IdentityMap::is_set($model->tablename, $pk_id))
 		{
-			return IdentityMap::get($dbobject->tablename, $pk_id);
+			return IdentityMap::get($model->tablename, $pk_id);
 		}
 		else
 		{
-			$sql = "SELECT * FROM ".$dbobject->tablename." t WHERE t.".$dbobject->pk."=".addslashes($pk_id);
+			$sql = "SELECT * FROM ".$model->tablename." t WHERE t.".$model->pk."=".addslashes($pk_id);
 			$db_results = DB::query($sql);
 			if (count($db_results) == 0){ return null; }
-			$dbobject->buildFromDB(reset($db_results));
-			return $dbobject;
+			$model->buildFromDB(reset($db_results));
+			return $model;
 		}
 	}
 	public function First(){
 		$classname = get_called_class();
-		$dbobject = new $classname();
-		$sql = "SELECT TOP 1 * FROM ".$dbobject->tablename;
+		$model = new $classname();
+		$sql = "SELECT TOP 1 * FROM ".$model->tablename;
 		$db_results = DB::query($sql);
 		if (count($db_results) == 0){ return null; }
-		$dbobject->buildFromDB(reset($db_results));
-		return $dbobject;
+		$model->buildFromDB(reset($db_results));
+		return $model;
 	}
-	public static function All($sort_by = ''){
+	public static function All($sort_by = '', $debug = false){
 		$classname = get_called_class();
-		$dbobject = new $classname();
-		$sql = "SELECT * FROM ".$dbobject->tablename.' ';
+		$model = new $classname();
+		$sql = "SELECT * FROM ".$model->tablename.' ';
 		if ($sort_by != "")
 		{
 			$sql .= " ORDER BY ".$sort_by." ";
 		}
+		if ($debug) { print($sql); return; }
 		$db_results = DB::query($sql);
 		$obj_array = array();
 		foreach($db_results as $db_row)
 		{
-			$klass = get_class($dbobject);
+			$klass = get_class($model);
 			$obj = new $klass();
 			$obj->buildFromDB($db_row);
 			$obj_array[] = $obj;
 		}
 		return $obj_array;
+	}
+
+	public static function collectionToXML($collection, $includes = array(), $name = '')
+	{
+		$doc = new \DOMDocument('1.0');
+		$doc->formatOutput = true;
+		
+		if ($name == '')
+		{
+			$classname = get_called_class();
+			$classname = substr($classname, strrpos($classname, "\\") + 1);
+			$pluralname = strtolower(Inflector::plural($classname));
+			$name = $pluralname;
+		}
+
+		$root = $doc->createElement($name);
+		$root = $doc->appendChild($root);
+		
+		foreach($collection as $model)
+		{
+			$refl = new \ReflectionClass(get_class($model));
+			$modelname = strtolower($refl->getShortName());
+			$el = $doc->createElement($modelname);
+			$model->addXMLAttributes($doc, $el, $includes);
+			$el = $root->appendChild($el);
+		}
+		return $doc->saveXML();
+	}
+	public function addXMLAttributes($doc, &$el, $includes = array())
+	{
+		$this->_fields->addXMLAttributes($doc, $el);
+		foreach($includes as $key=>$relation)
+		{
+			if (is_array($relation))
+			{
+				$this->addXMLRelation($doc, $el, $key, $relation);
+			}
+			else
+			{
+				$this->addXMLRelation($doc, $el, $relation);
+			}
+		}
+	}
+	public function addXMLRelation($doc, &$el, $relation_name, $includes = array())
+	{
+		if ($this->hasRelation($relation_name))
+		{
+			$relation = $this->getRelationType($relation_name);
+			$relation_type = $relation->getType();
+			if ($relation_type == 'hasOneRelation'){
+				$rel_el = $doc->createElement($relation_name);
+				$this->$relation_name->addXMLAttributes($doc, $rel_el, $includes);
+				$rel_el = $el->appendChild($rel_el);
+			} else if ($relation_type == 'hasManyRelation' || $relation_type == 'habtmRelation') {
+				$rel_col_el = $doc->createElement($relation_name);
+				foreach($this->$relation_name as $model)
+				{
+					$refl = new \ReflectionClass(get_class($model));
+					$modelname = strtolower($refl->getShortName());
+					$rel_el = $doc->createElement($modelname);
+					$model->addXMLAttributes($doc, $rel_el);
+					$rel_el = $rel_col_el->appendChild($rel_el);
+				}
+				$rel_col_el = $el->appendChild($rel_col_el);
+			} else {
+				throw new \Exception("$relation_name isn't a valid relationship");
+			}
+		}
 	}
 }
 ?>
