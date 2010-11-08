@@ -1,4 +1,4 @@
-<?
+<?php
 namespace HappyPuppy;
 require_once($_ENV["docroot"]."config/hp.php");
 require_once("lib/all.php");
@@ -64,7 +64,7 @@ class HappyPuppy
 		{
 			if ($_ENV['config']['env'] == Environment::DEV)
 			{
-				require($_ENV["docroot"].$_ENV['config']["route_not_found_page_dev"]);
+				require($_ENV["docroot"]."happypuppy/error/default404dev.php");
 			}
 			else
 			{

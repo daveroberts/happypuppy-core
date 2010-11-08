@@ -1,4 +1,4 @@
-<?
+<?php
 
 class PhpRender implements iRender
 {

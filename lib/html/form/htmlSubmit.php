@@ -1,4 +1,4 @@
-<?
+<?php
 namespace HappyPuppy;
 class HtmlSubmit extends HtmlElement
 {

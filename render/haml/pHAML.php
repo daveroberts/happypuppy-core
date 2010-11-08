@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * A port (sortof) of the HAML system to PHP, for Ruby: http://haml.hamptoncatlin.com
  * Latest Documentation: http://i.cloudi.us/phaml/documentation or
@@ -163,10 +163,10 @@ class pHAML{
                     }
                     break;
                 case '-':
-                    $render .= ($this->_allowPHP)? $current_space .'<? '.trim($lines[10][$i]).' ?>'."\n":'';  //php wrap
+                    $render .= ($this->_allowPHP)? $current_space .'<?php '.trim($lines[10][$i]).' ?>'."\n":'';  //php wrap
                     break;
                 case '=':
-                    $render .= ($this->_allowPHP)? $current_space .'<? echo '.trim($lines[10][$i]).' ?>'."\n":'';  //php wrap
+                    $render .= ($this->_allowPHP)? $current_space .'<?php echo  '.trim($lines[10][$i]).' ?>'."\n":'';  //php wrap
                     break;
                 case '/':
                     $render .=  $current_space .'<!-- '.trim($lines[10][$i]).' -->'."\n";  //handle comments
@@ -197,7 +197,7 @@ class pHAML{
                             $render .= $current_space .'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'."\n";
                             break;
                         case 'XML':
-                            $render .= $current_space .'<?xml version="1.0" encoding="utf-8" ?>'."\n";
+                            $render .= $current_space .'<?phpxml version="1.0" encoding="utf-8" ?>'."\n";
                             break;
                         case '1.1':
                             $render .= $current_space .'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">'."\n";
@@ -223,8 +223,8 @@ class pHAML{
                         $attr[$attrs[1][$k]]=$attrs[3][$k].$attrs[4][$k];
                     }
                     if(count(array_diff($this->_function[$func]['required'],array_keys($attr))) === 0){
-                        $render.=  $current_space .'<? '. str_replace(array_keys($attr), $attr, $this->_function[$func]['open']).' ?>'."\n";
-                        if(!empty($this->_function[$func]['close'])) $close[$current_indent]= $current_space . '<? '. str_replace(array_keys($attr),$attr,$this->_function[$func]['close']).' ?>'."\n";
+                        $render.=  $current_space .'<?php '. str_replace(array_keys($attr), $attr, $this->_function[$func]['open']).' ?>'."\n";
+                        if(!empty($this->_function[$func]['close'])) $close[$current_indent]= $current_space . '<?php '. str_replace(array_keys($attr),$attr,$this->_function[$func]['close']).' ?>'."\n";
                     }else{
                         if($debug) $render.='<!-- function '.$func.' missing required values: '.implode(', ',array_diff($this->_function[$func]['required'],array_keys($attr))).' -->'."\n";
                     }
@@ -267,7 +267,7 @@ class pHAML{
             if(array_key_exists($vars[1][$i],$this->_values)){
                 $render = str_replace('[$'.$vars[1][$i].']',$this->_values[$vars[1][$i]],$render);
             }else{
-                $replace = ($this->_allowPHP)?'<? echo(isset($'.$vars[1][$i].'))?$'.$vars[1][$i].':\'\'; ?>':'';
+                $replace = ($this->_allowPHP)?'<?php echo (isset($'.$vars[1][$i].'))?$'.$vars[1][$i].':\'\'; ?>':'';
                 $render =  str_replace('[$'.$vars[1][$i].']',$replace,$render);
             }
         }

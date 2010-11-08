@@ -1,4 +1,4 @@
-<?
+<?php
 namespace HappyPuppy;
 class hasOneRelation extends Relation
 {

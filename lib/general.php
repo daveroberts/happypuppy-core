@@ -1,4 +1,4 @@
-<?
+<?php
 
 function include_dir($pattern)
 {

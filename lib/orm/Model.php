@@ -1,4 +1,4 @@
-<?
+<?php
 namespace HappyPuppy;
 require("Relations/Fields.php");
 require("UniqueFieldValidator.php");

@@ -1,4 +1,4 @@
-<?
+<?php
 
 namespace HappyPuppy;
 require_once('htmlElement.php');

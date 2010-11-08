@@ -1,4 +1,4 @@
-<?
+<?php
 namespace HappyPuppy;
 class HtmlHidden extends HtmlElement
 {

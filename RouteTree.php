@@ -10,9 +10,7 @@
 		}
 		function GetRoutes()
 		{
-			$apps;
-			if ($_ENV['config']['env'] == Environment::DEV){ $apps = $_ENV["config"]["all_apps"]; }
-			else { $apps = $_ENV["config"]["prod_apps"]; }
+			$apps = $_ENV["config"]["apps"];
 			foreach($apps as $app)
 			{
 				$filepath = $_ENV['docroot'].'apps/'.$app.'/'.$app.'Application.php';
@@ -20,6 +18,12 @@
 				require_once($filepath);
 				$app_classname = $app.'\\'.$app.'Application';
 				$app_instance = new $app_classname($app);
+				if (method_exists($app_instance, "isDebugApp") &&
+					$app_instance->isDebugApp() &&
+					$_ENV["config"]["env"] != Environment::DEV)
+				{
+					continue;
+				}
 				// can't call init here.  What if a database reference is created?  That should be global
 				//$app_instance->__init();
 				$app_instance->AddRoutesToList($this);

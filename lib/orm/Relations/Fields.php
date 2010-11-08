@@ -1,4 +1,4 @@
-<?
+<?php
 
 namespace HappyPuppy;
 class Fields
@@ -217,7 +217,7 @@ class Fields
 			else
 			{
 				$rel_el = $doc->createElement($field);
-				$text_node = $doc->createTextNode($this->getField($field)); 
+				$text_node = $doc->createTextNode($this->getField($field));
 				$text_node = $rel_el->appendChild($text_node);
 				$rel_el = $el->appendChild($rel_el);
 			}
