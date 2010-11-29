@@ -37,17 +37,9 @@ class Controller
 		if ($layout_template != null){ $this->layout_template = $layout_template; }
 		if ($view_template != null){ $this->view_template = $view_template; }
 	}
-	public function redirectTo($app_url)
+	public function redirectTo($location)
 	{
-		$this->redirectToRawUrl(\rawurl_from_appurl($app_url));
-	}
-	public function redirectToAction($action)
-	{
-		$this->redirectToRawUrl(\rawurl_from_action($action));
-	}
-	public function redirectToRawUrl($raw_url)
-	{
-		header("Location: {$raw_url}");
+		header("Location: {".url_for($location)."}");
 		exit();
 	}
 	public function runBeforeFilters($action)
