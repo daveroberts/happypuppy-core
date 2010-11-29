@@ -205,9 +205,9 @@ abstract class Model
 		}
 	}
 	public function save(&$error_msg = '', $debug = false){
-		if (method_exists($this, "before_save"))
+		if (method_exists($this, "beforeSave"))
 		{
-			$before_save_result = $this->before_save($error_msg);
+			$before_save_result = $this->beforeSave($error_msg);
 			if (!$before_save_result){ return false; }
 		}
 		$result = $this->_fields->save($error_msg, $debug);

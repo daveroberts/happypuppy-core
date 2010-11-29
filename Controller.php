@@ -39,7 +39,7 @@ class Controller
 	}
 	public function redirectTo($location)
 	{
-		header("Location: {".url_for($location)."}");
+		header("Location: ".url_for($location));
 		exit();
 	}
 	public function runBeforeFilters($action)
