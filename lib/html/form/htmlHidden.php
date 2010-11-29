@@ -3,9 +3,9 @@ namespace HappyPuppy;
 class HtmlHidden extends HtmlElement
 {
 	var $default_value;
-	function __construct($name, $default_value, $id = '')
+	function __construct($name, $default_value, $id = '', $html_options = array())
 	{
-		parent::__construct("input", true);
+		parent::__construct("input", true, $html_options);
 		$this->default_value = $default_value;
 		if ($id == ''){ $id = $name; }
 		$this->id = $id;
@@ -17,11 +17,6 @@ class HtmlHidden extends HtmlElement
 	{
 		$this->htmlOptions["value"] = $this->default_value;
 		return parent::toString();
-	}
-	
-	public static function make($name, $value){
-		$hid = new HtmlHidden($name, $value);
-		return $hid->toString();
 	}
 }
 

@@ -9,18 +9,14 @@ class form
 		if ($model == null){ throw new Exception("The model passed to the form is null"); }
 		$this->model = $model;
 	}
-	public function start($hp_action){
-		$url;
-		if (substr($hp_action,0, 1) == '/'){
-			$url = \rawurl_from_appurl($hp_action);
-		} else {
-			$url = \rawurl_from_action($hp_action);
-		}
-		return "<form method='post' action='".$url."'>";
+	public function start($location){
+		return \form_start($location);
 	}
-	public function label($label, $field, $options = array()){
-		$l = new HtmlLabel($this->inputFieldDefaultID($field), $label, $options);
-		return $l->toString();
+	public function label($label, $field, $html_options = array()){
+		return \label($label, $this->inputFieldDefaultID($field), $html_options);
+	}
+	public function hidden($field, $value){
+		return \hidden($this->inputFieldDefaultID($name), $value);
 	}
 	public function input($property, $options = array()){
 		if ($this->model->hasField($property))
@@ -32,10 +28,6 @@ class form
 			return $this->inputRelationship($property, $options);
 		}
 		throw new \Exception("$property is neither a field nor a relationship for ".get_class($this->model));
-	}
-	public function hidden($name, $value){
-		$hid = new HtmlHidden($this->inputFieldDefaultID($name), $value);
-		return $hid->toString();
 	}
 	public function submit($value, $html_options = array()){
 		$s = new HtmlSubmit($value, $html_options);

@@ -15,9 +15,9 @@
 		var $responds_to = 'GET';
 		function __construct($app, $controller, $action, $params = array(), $responds_to = 'GET')
 		{
-			$this->app = strtolower($app);
-			$this->controller = strtolower($controller);
-			$this->action = strtolower($action);
+			$this->app = $app;
+			$this->controller = $controller;
+			$this->action = $action;
 			$this->responds_to = $responds_to;
 			$this->params = $params;
 		}

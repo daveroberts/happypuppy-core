@@ -13,7 +13,6 @@ class HamlRender implements iRender
 		if ($controller_obj->layout)
 		{
 			$content = $this->file_with_obj($view_template, $controller_obj);
-			print("Content: ".$content); exit();
 			$head_template = $_ENV["app"]->root().'views/'.$controller_name.'/'.$action.'.head.haml';
 			$head = "";
 			if (file_exists($head_template))
@@ -25,6 +24,11 @@ class HamlRender implements iRender
 			$layout_template = $controller_obj->layout_template;
 			if ($layout_template == ""){ $layout_template = $_ENV["app"]->root().'views/layout.haml'; }
 			return $this->file_with_obj($layout_template, $controller_obj);
+			$pHAML = new pHAML();
+			//render the content
+			$content = $pHAML->render($template);
+			echo $rendered_output;
+			exit();
 		}
 		else
 		{

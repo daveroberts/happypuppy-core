@@ -1,6 +1,7 @@
 <?php
 require_once("CheckboxList.php");
 require_once("form.php");
+require_once("form_global.php");
 require_once("htmlAnchor.php");
 require_once("htmlCheckbox.php");
 require_once("htmlElement.php");

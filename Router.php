@@ -20,8 +20,9 @@
 		{
 			Router::LoadApplication($route);
 			Router::LoadController($route);
+			$_ENV["action"] = $route->action;
 			$_ENV["controller"]->responds_to = Route::GetRespondsTo($url);
-			$_ENV["controller"]->run_before_filters($route->action);
+			$_ENV["controller"]->runBeforeFilters($route->action);
 			ob_start();
 			if (method_exists($_ENV["controller"], $route->PHPAction()))
 			{
@@ -33,6 +34,7 @@
 			// did the page push out text?
 			if ($_ENV["controller"]->text_only)
 			{
+				header("Content-type: text/plain");
 				print($out);
 				exit();
 			}

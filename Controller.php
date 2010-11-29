@@ -23,11 +23,11 @@ class Controller
 	var $text_only = false;
 	var $responds_to = '';
 	// These are helper methods you may call
-	public function render_text($text = null){
+	public function renderText($text = null){
 		if ($text != null){ echo $text; }
 		$this->text_only = true;
 	}
-	public function render_no_layout($view_template = null)
+	public function renderNoLayout($view_template = null)
 	{
 		$this->layout = false;
 		if ($view_template != null){ $this->view_template = $view_template; }
@@ -37,24 +37,24 @@ class Controller
 		if ($layout_template != null){ $this->layout_template = $layout_template; }
 		if ($view_template != null){ $this->view_template = $view_template; }
 	}
-	public function redirect_to($app_url)
+	public function redirectTo($app_url)
 	{
-		$this->redirect_to_raw_url(\rawurl_from_appurl($app_url));
+		$this->redirectToRawUrl(\rawurl_from_appurl($app_url));
 	}
-	public function redirect_to_action($action)
+	public function redirectToAction($action)
 	{
-		$this->redirect_to_raw_url(\rawurl_from_action($action));
+		$this->redirectToRawUrl(\rawurl_from_action($action));
 	}
-	public function redirect_to_raw_url($raw_url)
+	public function redirectToRawUrl($raw_url)
 	{
 		header("Location: {$raw_url}");
 		exit();
 	}
-	public function run_before_filters($action)
+	public function runBeforeFilters($action)
 	{
-		$this->run_filters($action, $this->before, $this->not_before);
+		$this->runFilters($action, $this->before, $this->not_before);
 	}
-	private function run_filters($action, $filters, $unfiltered)
+	private function runFilters($action, $filters, $unfiltered)
 	{
 		// Determine which filters to run
 		$to_run = array();

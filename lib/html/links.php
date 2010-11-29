@@ -1,14 +1,93 @@
 <?php
 
+function link_to($text, $location, $html_options = array())
+{
+	return link_to_rawurl($text, rawurl_from_location($location), $html_options);
+}
+function url_for($location){ return rawurl_from_location($location); }
+function js_delete_confirm($confirm_text, $delete_id, $html_options = array())
+{
+	$confirm_js = "if (confirm('".$confirm_text."')) { var f = document.createElement('form');".
+		"f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'post'; ".
+		"var m = document.createElement('input'); m.setAttribute('type', 'hidden'); ".
+		"m.setAttribute('name', '_method'); m.setAttribute('value', 'delete'); f.appendChild(m);".
+		"var n = document.createElement('input'); n.setAttribute('type', 'hidden'); ".
+		"n.setAttribute('name', 'delete_id'); n.setAttribute('value', '".$delete_id."'); f.appendChild(n);".
+		" f.action = this.href;f.submit(); };return false;";
+	return $confirm_js;
+}
 function img($src)
 {
 	$imghtml = '<img src="'.$src.'" />';
 	return $imghtml;
 }
-
 function png($name)
 {
 	return img('/images/'.$name.'.png');
+}
+
+// THE FUNCTIONS BELOW ARE GENERALLY FOR HAPPY PUPPY ONLY
+// NOTHING BAD WILL HAPPEN IF YOU CALL THEM
+// BUT YOU SHOULDN'T EVER HAVE TO
+
+function link_to_rawurl($text, $rawurl, $html_options = array())
+{
+	$a = new \HappyPuppy\HtmlAnchor($rawurl, $text, $html_options);
+	return $a->toString();
+}
+
+function link_to_action($text, $action, $html_options = array())
+{
+	return link_to_rawurl($text, rawurl_from_action($action), $html_options );
+}
+
+// links to a URL in the current application
+function link_to_appurl($text, $app_url, $html_options = array())
+{
+	return link_to_rawurl($text, rawurl_from_appurl($app_url), $html_options);
+}
+
+function rawurl_from_location($location)
+{
+	if (substr($location, 0, 1) == '/'){
+		return rawurl_from_appurl($location);
+	} else if(substr($location, 0, 1) == '?'){
+		return rawurl_from_action($_ENV["action"].$location);
+	} else {
+		return rawurl_from_action($location);
+	}
+}
+
+function rawurl_from_appurl($app_url)
+{
+	$raw_url = '';
+	if (strcmp($_ENV["config"]["default_app"], $_ENV["app"]->name) != 0)
+	{
+		$raw_url .= '/'.$_ENV["app"]->name;
+	}
+	$raw_url .= $app_url;
+	return $raw_url;
+}
+
+function rawurl_from_action($action)
+{
+	return rawurl_from_controller($_ENV["controller"]->name, $action);
+}
+
+function rawurl_from_controller($controller, $action)
+{
+	return rawurl_from_app($_ENV["app"]->name, $controller, $action);
+}
+function rawurl_from_app($app, $controller, $action)
+{
+	$url = '/';
+	if (strcmp($_ENV["config"]["default_app"], $app) != 0)
+	{
+		$url .= $_ENV["app"]->name.'/';
+	}
+	$url .= $controller.'/';
+	$url .= $action;
+	return $url;
 }
 
 ?>
