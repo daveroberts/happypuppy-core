@@ -21,11 +21,16 @@ class Controller
 	var $view_template = '';
 	var $view_header = '';
 	var $text_only = false;
+	var $xml_only = false;
 	var $responds_to = '';
 	// These are helper methods you may call
 	public function renderText($text = null){
 		if ($text != null){ echo $text; }
 		$this->text_only = true;
+	}
+	public function renderXml($xml = null){
+		if ($xml != null){ echo $xml; }
+		$this->xml_only = true;
 	}
 	public function renderNoLayout($view_template = null)
 	{

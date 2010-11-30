@@ -17,6 +17,7 @@ function hasflash(){
 	return isset($_SESSION["flash"]);
 }
 function getflash($remove=true){
+	if (!hasflash()){ return ""; }
 	$retval = $_SESSION["flash"];
 	if ($remove){ unset($_SESSION["flash"]); }
 	return $retval;

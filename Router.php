@@ -32,9 +32,13 @@
 			$out = ob_get_contents();
 			ob_end_clean();
 			// did the page push out text?
-			if ($_ENV["controller"]->text_only)
-			{
+			if ($_ENV["controller"]->text_only){
 				header("Content-type: text/plain");
+				print($out);
+				exit();
+			}
+			if ($_ENV["controller"]->xml_only){
+				header("Content-type: text/xml");
 				print($out);
 				exit();
 			}
