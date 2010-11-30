@@ -53,7 +53,7 @@ class form
 			substr($type, 0, 5) == "float" ||
 			substr($type, 0, 4) == "date")
 		{
-			$t = new HtmlTextbox($this->inputFieldDefaultID($name), '', $this->model->$name, $htmlOptions);
+			$t = new HtmlTextbox($this->inputFieldDefaultID($name), $this->model->$name, '', $htmlOptions);
 			return $t->toString();
 		}
 		else if (substr($type, 0, 7) == "tinyint")
