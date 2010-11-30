@@ -5,9 +5,9 @@ class DBConnection
 {
 	public static function GetRootDB()
 	{
-		if (file_exists($_ENV["docroot"]."config/DBConf.php"))
+		if (file_exists($_ENV["docroot"]."config/dbconf.php"))
 		{
-			require_once($_ENV["docroot"]."config/DBConf.php");
+			require_once($_ENV["docroot"]."config/dbconf.php");
 			$method_name = "RootDB";
 			if (method_exists("\HappyPuppy\DBConf", $method_name))
 			{
@@ -18,9 +18,9 @@ class DBConnection
 	}
 	public static function GetDBName($app)
 	{
-		if (file_exists($_ENV["docroot"]."config/DBConf.php"))
+		if (file_exists($_ENV["docroot"]."config/dbconf.php"))
 		{
-			require_once($_ENV["docroot"]."config/DBConf.php");
+			require_once($_ENV["docroot"]."config/dbconf.php");
 			$method_name = $app."DB";
 			if (method_exists("\HappyPuppy\DBConf", $method_name))
 			{
@@ -32,9 +32,9 @@ class DBConnection
 	}
 	public static function GetDB($app)
 	{
-		if (file_exists($_ENV["docroot"]."config/DBConf.php"))
+		if (file_exists($_ENV["docroot"]."config/dbconf.php"))
 		{
-			require_once($_ENV["docroot"]."config/DBConf.php");
+			require_once($_ENV["docroot"]."config/dbconf.php");
 			$method_name = $app."DB";
 			if (method_exists("\HappyPuppy\DBConf", $method_name))
 			{
