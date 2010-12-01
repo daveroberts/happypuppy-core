@@ -47,8 +47,6 @@
 			$render_engine = $_ENV["config"]["render_engine"];
 			if ($_ENV["app"]->render_engine != null){ $render_engine = $_ENV["app"]->render_engine; }
 			if ($_ENV["controller"]->render_engine != null){ $render_engine = $_ENV["controller"]->render_engine; }
-			require_once('render/iRender.php');
-			require_once('render/'.$render_engine.'/'.$render_engine.'Render.php');
 			$render_engine_classname = $render_engine.'Render';
 			$render_engine_instance = new $render_engine_classname();
 			$out = $render_engine_instance->process($_ENV["controller"], $route->controller, $route->action);
