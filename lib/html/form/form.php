@@ -9,8 +9,8 @@ class form
 		if ($model == null){ throw new Exception("The model passed to the form is null"); }
 		$this->model = $model;
 	}
-	public function start($location){
-		return \form_start($location);
+	public function start($location, $html_options = array()){
+		return \form_start($location, $html_options);
 	}
 	public function label($label, $field, $html_options = array()){
 		return \label($label, $this->inputFieldDefaultID($field), $html_options);
