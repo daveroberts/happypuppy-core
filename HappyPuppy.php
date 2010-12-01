@@ -2,6 +2,7 @@
 namespace HappyPuppy;
 require_once($_ENV["docroot"]."config/hpconf.php");
 require_once("lib/all.php");
+require_once("render/all.php");
 require_once("SimpleCache.php");
 require_once("Router.php");
 
