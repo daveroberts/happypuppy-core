@@ -1,6 +1,4 @@
 <?php
-require_once("php/phpRender.php");
-require_once("haml/hamlRender.php");
 
 interface iRender
 {
