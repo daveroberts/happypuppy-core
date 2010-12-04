@@ -12,7 +12,9 @@ class DBConnection
 			if (method_exists("\HappyPuppy\DBConf", $method_name))
 			{
 				$dbsettings = DBConf::$method_name();
-				return new \PDO("mysql:host=".$dbsettings["hostname"].";dbname=".$dbsettings["dbname"]."", $dbsettings["dbusername"], $dbsettings["dbpassword"]);
+				$pdo = new \PDO("mysql:host=".$dbsettings["hostname"].";dbname=".$dbsettings["dbname"]."", $dbsettings["dbusername"], $dbsettings["dbpassword"]);
+				if ($pdo == null){ throw new \Exception("Cannot connect to database as root"); }
+				return $pdo;
 			}
 		}
 	}
@@ -39,7 +41,9 @@ class DBConnection
 			if (method_exists("\HappyPuppy\DBConf", $method_name))
 			{
 				$dbsettings = DBConf::$method_name();
-				return new \PDO("mysql:host=".$dbsettings["hostname"].";dbname=".$dbsettings["dbname"]."", $dbsettings["dbusername"], $dbsettings["dbpassword"]);
+				$pdo = new \PDO("mysql:host=".$dbsettings["hostname"].";dbname=".$dbsettings["dbname"]."", $dbsettings["dbusername"], $dbsettings["dbpassword"]);
+				if ($pdo == null){ throw new \Exception("Cannot connect to database as root"); }
+				return $pdo;
 			}
 		}
 	}

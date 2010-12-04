@@ -22,9 +22,11 @@
 				while (false !== ($file = readdir($handle)))
 				{
 					if ($file == '.' || $file == '..' || substr($file, strlen($file)-14) != "Controller.php"){ continue; }
-					require_once($_ENV['docroot'].'apps/'.$this->name.'/controllers/'.$file);
+					$rel_path = 'apps/'.$this->name.'/controllers/'.$file;
+					require_once($_ENV['docroot'].$rel_path);
 					// Controller.php = 14 letters
 					$controller_class_name = $this->name.'\\'.substr($file, 0, strlen($file)-4);
+					if (!class_exists($controller_class_name)){ throw new \Exception("No class named $controller_class_name found in $rel_path"); }
 					$controller_instance = new $controller_class_name($this, substr($file, 0, strlen($file) - 14));
 					// can't call init here.  This should be at runtime only
 					//$controller_instance->__init();

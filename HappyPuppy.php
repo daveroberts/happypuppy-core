@@ -9,12 +9,16 @@ require_once("Router.php");
 function run()
 {
 	HappyPuppy::getInstance()->init();
-	try { HappyPuppy::getInstance()->dispatch(); } catch (Exception $e)
+	try
+	{
+		HappyPuppy::getInstance()->dispatch();
+	}
+	catch (\Exception $e)
 	{
 		header('HTTP/1.1 500 Internal Server Error');
 		if ($_ENV['config']['env'] == Environment::DEV)
 		{
-			print($e);
+			require($_ENV['docroot'].'happypuppy/error/exception.php');
 		}
 		else
 		{

@@ -11,6 +11,7 @@ function include_dir($pattern)
 }
 
 function setflash($str){
+	if ($str == null || strcmp($str, '') == 0){ return; }
 	$_SESSION["flash"] = $str;
 }
 function hasflash(){

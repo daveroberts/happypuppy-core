@@ -3,24 +3,6 @@
 namespace HappyPuppy;
 class DBMigrationExec
 {
-	public static function MigrateDB($app, $version)
-	{
-		if ($_ENV['config']['env'] != Environment::DEV){ throw new \Exception('You tried to migrate your application while not in Development mode.  Set your environment $_ENV[\'config\'][\'env\'] to Environment::DEV in /config/hp.php'); }
-		$db_version = DBMigrationExec::Version($app);
-		//print("DB Version: ".$db_verison." Target version: ".$version); exit();
-		if ($db_version > $version)
-		{
-			DBMigrationExec::MigrateDownTo($app, $version);
-		}
-		else if ($db_version < $version)
-		{
-			DBMigrationExec::MigrateUpTo($app, $version);
-		}
-		else
-		{
-			// nothing to do, database already is this version
-		}
-	}
 	static function Version($app, $set_to_version = null)
 	{
 		$dbname = DBConnection::GetDBName($app);
@@ -38,6 +20,7 @@ class DBMigrationExec
 			DBMigrationExec::CreateVersionTableIfNotExists($dbname);
 			$sql = "UPDATE ".$dbname.".`dbversion` SET version=".$set_to_version;
 			DB::RootExec($sql);
+			return $set_to_version;
 		}
 	}
 	private static function CreateVersionTableIfNotExists($dbname)
@@ -53,10 +36,6 @@ class DBMigrationExec
 	}
 	static function HighestVersionAvailable($app)
 	{
-		if ($_ENV['config']['env'] != Environment::DEV)
-		{
-			return 0;
-		}
 		$filename = $_ENV["docroot"]."apps/".$app."/db/migrations.php";
 		if (!file_exists($filename)) { return 0; }
 		require_once($filename);
@@ -75,61 +54,41 @@ class DBMigrationExec
 		}
 		return $cur;
 	}
-	static function MigrateUpTo($app, $version)
+	static function MigrateDB($app, $target_version)
 	{
-		if ($_ENV['config']['env'] != Environment::DEV)
-		{
-			throw new \Exception('You tried to migrate your application while not in Development mode.  Set your environment $_ENV[\'config\'][\'env\'] to Environment::DEV in /config/hp.php');
-		}
 		$db_version = DBMigrationExec::Version($app);
-		if ($version <= $db_version){ throw new \Exception("Can't migrate up from database version ".$db_version." to app version ".$version.".  If you believe the database is actually a different version than this, you can edit the dbversion table in your database manually"); }
+		if ($db_version == $target_version){ return; } // nothing to do
 		require_once($_ENV["docroot"]."apps/".$app."/db/migrations.php");
-		$class_name = "\\".$app."\\".$app."Migrations";
-		while($db_version < $version)
+		$has_dev_data = false;
+		if (is_file($_ENV["docroot"]."apps/".$app."/db/devdata.php"))
 		{
-			$db_version;
-			$next_version = $db_version + 1;
+			require_once($_ENV["docroot"]."apps/".$app."/db/devdata.php");
+			$has_dev_data = true;
+		}
+		$class_name = "\\".$app."\\".$app."Migrations";
+		while($target_version != $db_version)
+		{
+			$next_version;
+			if ($db_version < $target_version){ $next_version = $db_version + 1; }
+			else { $next_version = $db_version - 1; }
 			$class_name = "\\".$app."\\".$app."Migrations";
 			$method_name = "From".$db_version."To".$next_version;
-			if (method_exists($class_name, $method_name))
+			if ($next_version > $db_version && !method_exists($class_name, $method_name))
 			{
-				$result = $class_name::$method_name();
-				$db_version = $next_version;
-				DBMigrationExec::Version($app, $db_version);
+				throw new \Exception("You must have a method named $method_name in $class_name if you want to migrate your database from version $db_version to $target_version");
 			}
-			else
+			$result = $class_name::$method_name();
+			// import dev data if applicable
+			if ($has_dev_data && $_ENV['config']['env'] == Environment::DEV)
 			{
-				throw new \Exception("Tried to load migration from class $class_name, but couldn't find a method named $method_name");
+				$class_name = "\\".$app."\\".$app."DevData";
+				$method_name = "From".$db_version."To".$next_version;
+				if (method_exists($class_name, $method_name))
+				{
+					$result = $class_name::$method_name();
+				}
 			}
-		}
-	}
-	static function MigrateDownTo($app, $version)
-	{
-		if ($_ENV['config']['env'] != Environment::DEV)
-		{
-			throw new \Exception('You tried to migrate your application while not in Development mode.  Set your environment $_ENV[\'config\'][\'env\'] to Environment::DEV in /config/hp.php');
-		}
-		$db_version = DBMigrationExec::Version($app);
-		if ($version >= $db_version){ throw new \Exception("Can't migrate down from database version ".$db_version." to app version $version.  If you believe the database is actually a different version than this, you can edit the dbversion table in your database manually"); }
-		require_once($_ENV["docroot"]."apps/".$app."/db/migrations.php");
-		$class_name = "\\".$app."\\".$app."Migrations";
-		while($db_version > $version)
-		{
-			$next_version = $db_version - 1;
-			$class_name = "\\".$app."\\".$app."Migrations";
-			$method_name = "From".$db_version."To".$next_version;
-			if (method_exists($class_name, $method_name))
-			{
-				print("Migrating down: ".$class_name."-".$method_name); 
-				$result = $class_name::$method_name();
-				$db_version = $next_version;
-				print("Changing to ".$db_version." ");
-				DBMigrationExec::Version($app, $db_version);
-			}
-			else
-			{
-				throw new \Exception("Tried to load migration from class $class_name, but couldn't find a method named $method_name");
-			}
+			$db_version = DBMigrationExec::Version($app, $next_version);
 		}
 	}
 }

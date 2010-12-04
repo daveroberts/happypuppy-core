@@ -18,6 +18,7 @@ class DB
 		global $db; return DB::wQuery($db, $sql);
 	}
 	private static function wQuery($db, $sql) {
+		if ($db == null){ throw new \Exception("No database connection defined in /config/dbconf.php for the current app (".$_ENV["app"]->name.")"); }
 		$stmt = $db->prepare($sql);
 		$stmt->execute();
 		$arr = array();
