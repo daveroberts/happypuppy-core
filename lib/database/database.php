@@ -18,7 +18,7 @@ class DB
 		global $db; return DB::wQuery($db, $sql);
 	}
 	private static function wQuery($db, $sql) {
-		if ($db == null){ throw new \Exception("No database connection defined in /config/dbconf.php for the current app (".$_ENV["app"]->name.")"); }
+		if ($db == null){ throw new \Exception("Could not connect to database"); }
 		$stmt = $db->prepare($sql);
 		$stmt->execute();
 		$arr = array();
@@ -30,6 +30,7 @@ class DB
 	}
 	static function RootExec($sql){
 		$rootdb = DBConnection::GetRootDB();
+		if ($rootdb == null){ throw new \Exception("Could not connect to root database"); }
 		return DB::wExec($rootdb, $sql);
 	}
 	static function appExec($app, $sql){
@@ -40,6 +41,7 @@ class DB
 		global $db; return DB::wExec($db, $sql);
 	}
 	private static function wExec($db, $sql){
+		if ($db == null){ throw new \Exception("Could not connect to database"); }
 		$db->exec($sql);
 		return true; // $db->exec incorrectly returns 0 when 1 row is affected
 	}
