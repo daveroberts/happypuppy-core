@@ -49,7 +49,9 @@ function link_to_appurl($text, $app_url, $html_options = array())
 
 function rawurl_from_location($location)
 {
-	if (substr($location, 0, 1) == '/'){
+	if (strcmp($location, "self") == 0){
+		return "/".$_GET["url"];
+	} else if (substr($location, 0, 1) == '/'){
 		return rawurl_from_appurl($location);
 	} else if(substr($location, 0, 1) == '?'){
 		return rawurl_from_action($_ENV["action"].$location);

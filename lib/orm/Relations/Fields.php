@@ -113,11 +113,11 @@ class Fields
 			if (array_key_exists($field, $this->_cached_field_values))
 			{
 				if ($this->isDateField($field)){
-					$date = Fields::formatDate(mysql_real_escape_string($this->getField($field)));
+					$date = Fields::formatDate(addslashes($this->getField($field)));
 					if (!$date){ $date = "NULL"; }
-					$sql .= "'".mysql_real_escape_string($date)."', ";
+					$sql .= "'".addslashes($date)."', ";
 				} else {
-					$sql .= "'".mysql_real_escape_string($this->getField($field))."', ";
+					$sql .= "'".addslashes($this->getField($field))."', ";
 				}
 			}
 		}

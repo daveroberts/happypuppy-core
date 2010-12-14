@@ -30,7 +30,7 @@
 	<?php $arg = $trace[0]['args'][$x]; ?>
 	<div class="param">
 		<div><?php echo $params[$x] ?></div>
-		<pre><?php echo $arg ?></pre>
+		<pre><?php var_dump($arg) ?></pre>
 	</div>
 <?php endfor; ?>
 <h3>Full Trace</h3>

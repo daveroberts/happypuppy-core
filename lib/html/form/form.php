@@ -10,13 +10,20 @@ class form
 		$this->model = $model;
 	}
 	public function start($location, $html_options = array()){
-		return \form_start($location, $html_options);
+		$output = \form_start($location, $html_options);
+		// if this item has an ID, include the ID as a hidden parameter
+		if ($this->model->pkval != null){
+			$hid = new HtmlHidden($this->inputFieldDefaultID($this->model->pk), $this->model->pkval);
+			$output .= $hid->toString();
+		}
+		return $output;
 	}
-	public function label($label, $field, $html_options = array()){
+	public function label($field, $label = '', $html_options = array()){
+		if ($label == ''){ $label = $field; }
 		return \label($label, $this->inputFieldDefaultID($field), $html_options);
 	}
 	public function hidden($field, $value){
-		return \hidden($this->inputFieldDefaultID($name), $value);
+		return \hidden($this->inputFieldDefaultID($field), $value);
 	}
 	public function input($property, $options = array()){
 		if ($this->model->hasField($property))
@@ -119,16 +126,34 @@ class form
 		$all = $foreign_model::All();
 		$select_box_description = $foreign_class->__description;
 		$related_entity = $this->model->$name;
-		$re_pk = $related_entity->pk;
-		$related_id = $related_entity->$re_pk;
+		$related_ids = array();
+		if ($related_entity != null)
+		{
+			$related_id = $related_entity->pkval;
+			$related_ids[] = $related_id;
+		}
 		$sel_options = array();
+		$default_values = array();
+		if (isset($options["default_values"])){ $default_values = $options["default_values"]; }
+		$default_ids = array();
+		if (isset($options["default_ids"])){ $default_ids = $options["default_ids"]; }
+		if (isset($options["default_value"])){ $default_values[] = $options["default_value"]; }
+		if (isset($options["default_id"])){ $default_ids[] = $options["default_id"]; }
 		foreach($all as $foreign_entity)
 		{
+			if (in_array($foreign_entity->$pk, $default_ids)){
+				$related_ids[] = $foreign_entity->$pk;
+			}
+			if (in_array($foreign_entity->$select_box_description, $default_values)){
+				$related_ids[] = $foreign_entity->$pk;
+			}
 			$sel_options[$foreign_entity->$pk] = $foreign_entity->$select_box_description;
 		}
 		$refl = new \ReflectionClass(get_class($this->model));
 		$modelname = $refl->getShortName();
-		$s = new HtmlSelect($modelname."[rel_ids_".$name."]", $sel_options, true, false, $related_id);
+		$include_blank = false;
+		if ($options["include_blank"] === true){ $include_blank = true; }
+		$s = new HtmlSelect($modelname."[rel_ids_".$name."]", $sel_options, $include_blank, false, $related_ids);
 		return $s->toString();
 	}
 	private function inputHABTM($name, $options){
