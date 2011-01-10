@@ -39,7 +39,7 @@ class DBMigrationExec
 		$filename = $_ENV["docroot"]."apps/".$app."/db/migrations.php";
 		if (!file_exists($filename)) { return 0; }
 		require_once($filename);
-		$class_name = "\\".$app."\\".$app."Migrations";
+		$class_name = "\\".$app."\\Migrations";
 		$cur = 0;
 		$done = false;
 		while (!$done)
@@ -65,13 +65,13 @@ class DBMigrationExec
 			require_once($_ENV["docroot"]."apps/".$app."/db/devdata.php");
 			$has_dev_data = true;
 		}
-		$class_name = "\\".$app."\\".$app."Migrations";
+		$class_name = "\\".$app."\\Migrations";
 		while($target_version != $db_version)
 		{
 			$next_version;
 			if ($db_version < $target_version){ $next_version = $db_version + 1; }
 			else { $next_version = $db_version - 1; }
-			$class_name = "\\".$app."\\".$app."Migrations";
+			$class_name = "\\".$app."\\Migrations";
 			$method_name = "From".$db_version."To".$next_version;
 			if ($next_version > $db_version && !method_exists($class_name, $method_name))
 			{
@@ -81,7 +81,7 @@ class DBMigrationExec
 			// import dev data if applicable
 			if ($has_dev_data && $_ENV['config']['env'] == Environment::DEV)
 			{
-				$class_name = "\\".$app."\\".$app."DevData";
+				$class_name = "\\".$app."\\DevData";
 				$method_name = "From".$db_version."To".$next_version;
 				if (method_exists($class_name, $method_name))
 				{

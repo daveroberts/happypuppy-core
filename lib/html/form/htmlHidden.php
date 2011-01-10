@@ -15,7 +15,7 @@ class HtmlHidden extends HtmlElement
 	
 	function toString()
 	{
-		$this->htmlOptions["value"] = $this->default_value;
+		$this->htmlOptions["value"] = htmlentities($this->default_value);
 		return parent::toString();
 	}
 }

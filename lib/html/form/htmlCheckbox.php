@@ -19,7 +19,7 @@ class HtmlCheckbox extends HtmlElement
 		$this->htmlOptions["type"] = "checkbox";
 	}
 	function toString(){
-		$this->htmlOptions["value"] = $this->value;
+		$this->htmlOptions["value"] = htmlentities($this->value);
 		if ($this->checked){
 			$this->htmlOptions["checked"] = "checked";
 		}

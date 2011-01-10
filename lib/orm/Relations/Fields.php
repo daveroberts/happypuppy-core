@@ -155,15 +155,15 @@ class Fields
 				if ($this->isDateField($field)){
 					$date = Fields::formatDate($this->getField($field));
 					if (!$date){ $date = "NULL"; }
-					$sql .= $field."='".addslashes($date)."', ";
+					$sql .= "`".$field."`='".addslashes($date)."', ";
 				} else {
-					$sql .= $field."='".addslashes($this->getField($field))."', ";
+					$sql .= "`".$field."`='".addslashes($this->getField($field))."', ";
 				}
 				
 			}
 		}
 		$sql = rtrim($sql, ", ");
-		$sql .= " WHERE ".$this->getPK()."='".$this->getField($this->getpk())."'";
+		$sql .= " WHERE `".$this->getPK()."`='".$this->getField($this->getpk())."'";
 		if ($debug){ print($sql); return false; }
 		$result = DB::exec($sql);
 		return $result;

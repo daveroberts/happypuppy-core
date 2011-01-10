@@ -16,14 +16,17 @@ function js_delete_confirm($confirm_text, $delete_id, $html_options = array())
 		" f.action = this.href;f.submit(); };return false;";
 	return $confirm_js;
 }
-function img($src)
+function img($src, $alt = '')
 {
-	$imghtml = '<img src="'.$src.'" />';
+	$alttag = '';
+	if ($alt != ''){ $alttag = 'alt="'.$alt.'"'; }
+	$imghtml = '<img src="'.$src.'" '.$alttag.' />';
 	return $imghtml;
 }
-function png($name)
+function png($name, $alt="")
 {
-	return img('/images/'.$name.'.png');
+	if ($alt == ''){ $alt = $name; }
+	return img('/images/'.$name.'.png', $alt);
 }
 
 // THE FUNCTIONS BELOW ARE GENERALLY FOR HAPPY PUPPY ONLY
@@ -50,7 +53,14 @@ function link_to_appurl($text, $app_url, $html_options = array())
 function rawurl_from_location($location)
 {
 	if (strcmp($location, "self") == 0){
-		return "/".$_GET["url"];
+		$new_get = $_GET;
+		unset($new_get["url"]);
+		$vars = "?";
+		foreach($new_get as $k=>$v){
+			$vars .= $k."=".urlencode($v)."&";
+		}
+		$vars = substr($vars, 0, strlen($vars) - 1);
+		return "/".$_GET["url"].$vars;
 	} else if (substr($location, 0, 1) == '/'){
 		return rawurl_from_appurl($location);
 	} else if(substr($location, 0, 1) == '?'){

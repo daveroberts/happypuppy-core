@@ -10,13 +10,12 @@ class form
 		$this->model = $model;
 	}
 	public function start($location, $html_options = array()){
-		$output = \form_start($location, $html_options);
-		// if this item has an ID, include the ID as a hidden parameter
-		if ($this->model->pkval != null){
-			$hid = new HtmlHidden($this->inputFieldDefaultID($this->model->pk), $this->model->pkval);
-			$output .= $hid->toString();
-		}
-		return $output;
+		return \form_start($location, $html_options);
+	}
+	public function hiddenID()
+	{
+		if ($this->model->pkval == null){ return ""; }
+		return $this->hidden($this->model->pk, $this->model->pkval);
 	}
 	public function label($field, $label = '', $html_options = array()){
 		if ($label == ''){ $label = $field; }

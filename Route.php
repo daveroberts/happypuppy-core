@@ -98,11 +98,7 @@
 		}
 		function appFilename()
 		{
-			return $_ENV["docroot"].'apps/'.$this->app.'/'.$this->appClassname().'.php';
-		}
-		function appClassname()
-		{
-			return $this->app.'Application';
+			return $_ENV["docroot"].'apps/'.$this->app.'/Application.php';
 		}
 		function controllerFilename()
 		{

@@ -19,7 +19,7 @@ class HtmlOption extends HtmlElement
 		{
 			$this->htmlOptions["selected"] = "selected";
 		}
-		$this->htmlOptions["value"] = $this->val;
+		$this->htmlOptions["value"] = htmlentities($this->val);
 		$this->innerHTML = $this->name;
 		return parent::toString();
 	}

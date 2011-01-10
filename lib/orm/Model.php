@@ -273,9 +273,12 @@ abstract class Model
 		$classname = get_called_class();
 		$model = new $classname();
 		$sql = "SELECT * FROM ".$model->tablename.' ';
-		if ($sort_by != "")
-		{
-			$sql .= " ORDER BY ".$sort_by." ";
+		if ($sort_by != ""){
+			$sql .= " ORDER BY `".$sort_by."` ";
+		} else {
+			if ($model->hasField("name")){
+				$sql .= " ORDER BY `name` ";
+			}
 		}
 		if ($debug) { print($sql); return; }
 		$db_results = DB::query($sql);

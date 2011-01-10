@@ -50,18 +50,6 @@ class DB
 		global $db;
 		return $db->lastInsertId();
 	}
-	static function assoc($sql, $key, $value)
-	{
-		global $db;
-		$stmt = $db->prepare($sql);
-		$stmt->execute();
-		$arr = array();
-		while($row = stripslashes_deep($stmt->fetch(\PDO::FETCH_ASSOC)))
-		{
-			$arr[$row[$key]] = $row[$value];
-		}
-		return $arr;
-	}
 	static function get_field_structure($tablename)
 	{
 		global $__field_structure;
@@ -92,9 +80,9 @@ class DB
 }
 function stripslashes_deep($value)
 {
-	$value = is_array($value) ?
+	/*$value = is_array($value) ?
 		array_map('\HappyPuppy\stripslashes_deep', $value) :
-		stripslashes($value);
+		stripslashes($value);*/
 	return $value;
 }
 ?>

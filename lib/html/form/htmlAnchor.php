@@ -6,24 +6,24 @@ require_once('htmlElement.php');
 class HtmlAnchor extends HtmlElement
 {
 	var $href;
-	var $text;
-	function __construct($href, $text='', $html_options = array())
+	var $html;
+	function __construct($href, $html='', $html_options = array())
 	{
 		parent::__construct("a", false, $html_options);
 		$this->href = $href;
-		$this->text = $text;
+		$this->html = $html;
 	}
 	
 	function toString()
 	{
 		$this->htmlOptions["href"] = $this->href;
-		if (strcmp($this->text, '') == 0)
+		if (strcmp($this->html, '') == 0)
 		{
 			$this->innerHTML = $this->href;
 		}
 		else
 		{
-			$this->innerHTML = $this->text;
+			$this->innerHTML = $this->html;
 		}
 		return parent::toString();
 	}

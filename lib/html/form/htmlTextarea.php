@@ -1,22 +1,21 @@
 <?php
 namespace HappyPuppy;
-class HtmlTextbox extends HtmlElement
+class HtmlTextarea extends HtmlElement
 {
 	var $default_value;
 	function __construct($name, $default_value = '', $id='', $htmlOptions = array())
 	{
-		parent::__construct("input", true, $htmlOptions);
+		parent::__construct("textarea", false, $htmlOptions);
 		$this->default_value = $default_value;
 		$this->name = $name;
 		if ($id == ''){ $id = $name; }
 		$this->id = $id;
 		$this->htmlOptions["name"] = $name;
-		$this->htmlOptions["type"] = "text";
 	}
 	
 	function toString()
 	{
-		$this->htmlOptions["value"] = htmlentities($this->default_value);
+		$this->innerHTML = $this->default_value;
 		return parent::toString();
 	}
 }

@@ -55,7 +55,7 @@
 		private static function LoadApplication($route)
 		{
 			require_once($route->appFilename());
-			if (!class_exists($route->app.'\\'.$route->appClassname()))
+			if (!class_exists($route->app.'\\Application'))
 			{
 				if ($_ENV['config']['env'] != Environment::DEV)
 				{
@@ -63,11 +63,11 @@
 				}
 				else
 				{
-					print("Can't load application: ".$route->app.".  Make sure you have a folder named ".$route->app." containing a file named ".$route->appClassname().".php containing a class named ".$route->appClassname());
+					print("Can't load application: ".$route->app.".  Make sure you have a folder named ".$route->app." containing a file named Application.php containing a class named Application");
 					exit();
 				}
 			}
-			$app_classname = $route->app.'\\'.$route->appClassname();
+			$app_classname = $route->app.'\\Application';
 			$_ENV["app"] = new $app_classname($route->app);
 			// load the database
 			DBConnection::SetDB($route->app);

@@ -14,7 +14,7 @@ class HtmlSubmit extends HtmlElement
 	{
 		if ($this->value != "")
 		{
-			$this->htmlOptions["value"] = $this->value;
+			$this->htmlOptions["value"] = htmlentities($this->value);
 		}
 		return parent::toString();
 	}

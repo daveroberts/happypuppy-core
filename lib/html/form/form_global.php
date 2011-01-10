@@ -30,6 +30,16 @@ function textbox($name, $default_value = '', $id = '', $htmlOptions = array()){
 	$text = new \HappyPuppy\HtmlTextbox($name, $default_value, $id, $htmlOptions);
 	return $text->toString();
 }
+function textarea($name, $default_value = '', $id='', $htmlOptions = array()){
+	$text = new \HappyPuppy\HtmlTextarea($name, $default_value, $id, $htmlOptions);
+	return $text->toString();
+}
+
+function select($name, $opts, $include_blank = false, $multiple = false, $selected_ids = array(), $html_options = array()){
+	$html_options["name"] = $name;
+	$select = new \HappyPuppy\HtmlSelect($id, $opts, $include_blank, $multiple, $selected_ids, $html_options);
+	return $select->toString();
+}
 
 function submit($value, $htmlOptions = array()){
 	$htmlOptions["type"] = "submit";

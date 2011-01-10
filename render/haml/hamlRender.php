@@ -23,11 +23,10 @@ class HamlRender implements iRender
 			$controller_obj->head = $head;
 			$layout_template = $controller_obj->layout_template;
 			if ($layout_template == ""){ $layout_template = $_ENV["app"]->root().'views/layout.haml'; }
-			return $this->file_with_obj($layout_template, $controller_obj);
-			$pHAML = new pHAML();
-			//render the content
-			$content = $pHAML->render($template);
-			echo $rendered_output;
+			$layout = $this->file_with_obj($layout_template, $controller_obj);
+			$page = str_replace('$content', $content, $layout);
+			$page = str_replace('$head',$head,$page);
+			print $page;
 			exit();
 		}
 		else
