@@ -54,10 +54,17 @@ class DBMigrationExec
 		}
 		return $cur;
 	}
-	static function MigrateDB($app, $target_version)
+	static function MigrateDB($app, $target_version, $message = '')
 	{
+		$num_migrations_performed = 0;
+		$num_dev_data_loaded = 0;
 		$db_version = DBMigrationExec::Version($app);
-		if ($db_version == $target_version){ return; } // nothing to do
+		if ($db_version == $target_version)
+		{
+			// nothing to do
+			$message = "DB version is already $db_version";
+			return true;
+		}
 		require_once($_ENV["docroot"]."apps/".$app."/db/migrations.php");
 		$has_dev_data = false;
 		if (is_file($_ENV["docroot"]."apps/".$app."/db/devdata.php"))
@@ -78,6 +85,7 @@ class DBMigrationExec
 				throw new \Exception("You must have a method named $method_name in $class_name if you want to migrate your database from version $db_version to $target_version");
 			}
 			$result = $class_name::$method_name();
+			$num_migrations_performed++;
 			// import dev data if applicable
 			if ($has_dev_data && $_ENV['config']['env'] == Environment::DEV)
 			{
@@ -86,10 +94,13 @@ class DBMigrationExec
 				if (method_exists($class_name, $method_name))
 				{
 					$result = $class_name::$method_name();
+					$num_dev_data_loaded++;
 				}
 			}
 			$db_version = DBMigrationExec::Version($app, $next_version);
 		}
+		$message = "Performed $num_migrations_performed migration(s) with $num_dev_data_loaded set(s) of dev data";
+		return true;
 	}
 }
 

@@ -293,7 +293,7 @@ abstract class Model
 		return $obj_array;
 	}
 
-	public static function collectionToXML($collection, $includes = array(), $name = '')
+	public static function collectionToXML($collection, $includes = array(), $excludes = array(), $name = '')
 	{
 		$doc = new \DOMDocument('1.0');
 		$doc->formatOutput = true;
@@ -314,14 +314,14 @@ abstract class Model
 			$refl = new \ReflectionClass(get_class($model));
 			$modelname = strtolower($refl->getShortName());
 			$el = $doc->createElement($modelname);
-			$model->addXMLAttributes($doc, $el, $includes);
+			$model->addXMLAttributes($doc, $el, $includes, $excludes);
 			$el = $root->appendChild($el);
 		}
 		return $doc->saveXML();
 	}
-	public function addXMLAttributes($doc, &$el, $includes = array())
+	public function addXMLAttributes($doc, &$el, $includes = array(), $excludes = array())
 	{
-		$this->_fields->addXMLAttributes($doc, $el);
+		$this->_fields->addXMLAttributes($doc, $el, $excludes);
 		foreach($includes as $key=>$relation)
 		{
 			if (is_array($relation))
@@ -341,9 +341,12 @@ abstract class Model
 			$relation = $this->getRelationType($relation_name);
 			$relation_type = $relation->getType();
 			if ($relation_type == 'hasOneRelation'){
-				$rel_el = $doc->createElement($relation_name);
-				$this->$relation_name->addXMLAttributes($doc, $rel_el, $includes);
-				$rel_el = $el->appendChild($rel_el);
+				$rel = $this->$relation_name;
+				if ($rel != null){
+					$rel_el = $doc->createElement($relation_name);
+					$rel->addXMLAttributes($doc, $rel_el, $includes);
+					$rel_el = $el->appendChild($rel_el);
+				}
 			} else if ($relation_type == 'hasManyRelation' || $relation_type == 'habtmRelation') {
 				$rel_col_el = $doc->createElement($relation_name);
 				foreach($this->$relation_name as $model)

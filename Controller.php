@@ -22,15 +22,20 @@ class Controller
 	var $view_header = '';
 	var $text_only = false;
 	var $xml_only = false;
+	var $json_only = false;
 	var $responds_to = '';
 	// These are helper methods you may call
 	public function renderText($text = null){
 		if ($text != null){ echo $text; }
 		$this->text_only = true;
 	}
-	public function renderXml($xml = null){
+	public function renderXML($xml = null){
 		if ($xml != null){ echo $xml; }
 		$this->xml_only = true;
+	}
+	public function renderJSON($json = null){
+		if ($json != null){ echo $json; }
+		$this->json_only = true;
 	}
 	public function renderNoLayout($view_template = null)
 	{
