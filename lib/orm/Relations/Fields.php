@@ -206,10 +206,11 @@ class Fields
 		return $year.'-'.$month.'-'.$day;
 	}
 	
-	public function addXMLAttributes($doc, &$el)
+	public function addXMLAttributes($doc, &$el, $excludes = array())
 	{
 		foreach($this->fieldNames() as $field)
 		{
+			if (in_array($field, $excludes)){ continue; }
 			if ($field == $this->getPK())
 			{
 				$el->setAttribute($field, $this->getField($field));

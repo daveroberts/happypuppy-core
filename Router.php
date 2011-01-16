@@ -42,6 +42,11 @@
 				print($out);
 				exit();
 			}
+			if ($_ENV["controller"]->json_only){
+				header("Content-type: application/json");
+				print($out);
+				exit();
+			}
 			// if not, we need to collect class variables, package them and process here
 			// find out which render engine the page load wants to use:
 			$render_engine = $_ENV["config"]["render_engine"];

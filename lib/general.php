@@ -10,6 +10,11 @@ function include_dir($pattern)
 	ob_end_clean();
 }
 
+function isAjaxRequest(){
+	return 	!empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+			strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+}
+
 function setflash($str){
 	if ($str == null || strcmp($str, '') == 0){ return; }
 	$_SESSION["flash"] = $str;
