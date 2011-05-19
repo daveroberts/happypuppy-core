@@ -25,12 +25,18 @@ abstract class Model
 	private $_relations;
 	private $_sqlFinder;
 	
+	public static $all_rows_loaded;
+	
 	function __construct($tablename = '')
 	{
 		if ($tablename != ''){ $this->setTablename($tablename); }
 		$this->_fields = new Fields($this);
 		$this->_relations = new Relations($this);
 		$this->_sqlFinder = new sqlFinder($this);
+		if(!is_array(self::$all_rows_loaded))
+		{
+			self::$all_rows_loaded = array();
+		}
 	}
 	
 	// Field Related
@@ -111,9 +117,30 @@ abstract class Model
 		}
 		else if ($this->_relations->hasRelation($name))
 		{
-			return $this->_relations->getRelationValues($name);
+			$arr = array();
+			return $this->_relations->getRelationValues($name, $arr);
 		}
-		return null;
+		else
+		{
+			$refl = new \ReflectionClass($this);
+			throw new \Exception("Unable to determine what a ".$name." is on a ".$refl->getShortName());
+		}
+	}
+	// used by forms
+	public function getValue($name, &$debug = array())
+	{
+		if ($this->_fields->hasField($name))
+		{
+			return $this->_fields->getField($name, $debug);
+		}
+		else if ($this->_relations->hasRelation($name))
+		{
+			$arr = array();
+			return $this->_relations->getRelationValues($name, $debug);
+		}
+	}
+	public function getRelationValues($name, &$debug = array()){
+		return $this->_relations->getRelationValues($name, $debug);
 	}
 	public function __set($name, $value){
 		if ($this->_fields->hasField($name))
@@ -128,32 +155,35 @@ abstract class Model
 		}
 		throw new \Exception($name." is not a field or relation");
 	}
+	public function setRelationValues($name, $value, &$debug = array(), $stop_before_alter = false){
+		if ($this->hasRelation($name))
+		{
+			$this->_relations->setRelation($name, $value, $debug, $stop_before_alter);
+			return;
+		}
+	}
 	public static function __callStatic($name, $args){
 		if (substr($name, 0, 6) == "FindBy")
 		{
 			$name = substr($name, 6);
-			return self::FindBy($name, $args[0]);
+			if (count($args) == 1){ $args[1] = false; }
+			return self::FindBy($name, $args[0], $args[1]);
+		}
+		if (substr($name, 0, 5) == "GetBy")
+		{
+			
+			$name = substr($name, 5);
+			if (count($args) == 1){ $args[1] = false; }
+			return self::GetBy($name, $args[0], $args[1]);
 		}
 		throw new \Exception($name." is not a valid method");
-	}
-	public function buildAll($db_results){
-		$obj_array = array();
-		$klass = get_class($this);
-		$pk_col = $this->pk;
-		foreach($db_results as $db_row)
-		{
-			$obj = new $klass();
-			$obj->buildFromDB($db_row);
-			$obj_array[$obj->$pk_col] = $obj;
-		}
-		return $obj_array;
 	}
 	public function buildFromDB($arr){
 		$this->_fields->buildFromDB($arr);
 		$pk_id = $arr[$this->pk];
 		IdentityMap::set($this->tablename,$pk_id,$this);
 	}
-	public static function buildFromPost($arr){
+	public static function BuildFromPost($arr){
 		$klass = get_called_class();
 		$obj = new $klass();
 		$obj->build($arr);
@@ -170,68 +200,75 @@ abstract class Model
 		$obj = new $klass();
 		return $obj->buildAll($db_results);
 	}
-	public static function Count($args, $debug = false){
+	public static function Count($args, &$debug = array()){
 		$classname = get_called_class();
 		$model = new $classname();
 		return $model->pCount($args, $debug);
 	}
-	public function pCount($args, $debug = false){
+	public function pCount($args, $debug, &$debug_log){
 		$args["count"] = true;
 		return $this->_sqlFinder->find($args, $debug);
 	}
-	public static function Find($args, $debug = false){
+	public static function Find($args, &$debug = array()){
 		$classname = get_called_class();
 		$model = new $classname();
-		return $model->pFind($args, $debug);
+		return $model->pFind($args, $debug, $debug_log);
 	}
 	public function pFind($args, $debug = false){
 		return $this->_sqlFinder->find($args, $debug);
 	}
-	public static function FindBy($name, $val){
+	public static function FindBy($name, $val, &$debug = array()){
 		$classname = get_called_class();
 		$model = new $classname();
-		return $model->pFindBy($name, $val);
+		return $model->pFindBy($name, $val, $debug);
 	}
-	public function pFindBy($name, $val){
-		return $this->_sqlFinder->findBy($name, $val);
+	public function pFindBy($name, $val, &$debug){
+		return $this->_sqlFinder->findBy($name, $val, $debug);
 	}
-	public function loadRelation($sql, $relation_name){
+	public static function GetBy($name, $val, &$debug = array()){
+		$classname = get_called_class();
+		$model = new $classname();
+		$results = $model->pFindBy($name, $val, $debug);
+		if (count($results) == 1){ return end($results); }
+		return null;
+	}
+	public static function LoadRelation($sql, $relation_name){
 		$db_results = DB::query($sql);
-		$relation = $this->_relations->getRelationType($relation_name);
+		$classname = get_called_class();
+		$model = new $classname();
+		$relation = $model->_relations->getRelationType($relation_name);
 		foreach($db_results as $db_row)
 		{
 			$foreign_klass = $relation->foreign_class;
 			$foreign_obj = new $foreign_klass();
 			$foreign_obj->buildFromDB($db_row);
-			$klass = get_class($this);
-			$obj = new $klass();
+			$obj = new $classname();
 			$obj = $obj->get($db_row["__id"]);
 			$obj->addIntoRelation($relation_name, $foreign_obj->pkval, $foreign_obj);
-			$x = 0;
 		}
 	}
-	public function save(&$error_msg = '', $debug = false){
+	public function save(&$error_msg = '', &$debug = array(), $stop_before_alter = false){
 		if (method_exists($this, "beforeSave"))
 		{
 			$before_save_result = $this->beforeSave($error_msg);
 			if (!$before_save_result){ return false; }
 		}
-		$result = $this->_fields->save($error_msg, $debug);
+		$result = $this->_fields->save($error_msg, $debug, $stop_before_alter);
 		if (!$result){ return false; }
-		$result = $this->_relations->save($error_msg, $debug);
+		$result = $this->_relations->save($debug, $stop_before_alter);
 		if (!$result){ return false; }
 		return true;
 	}
-	public function delete(){
-		$result = $this->_fields->delete();
+	public function delete(&$debug = array(), $stop_before_alter = false){
+		$result = $this->_fields->delete($debug, $stop_before_alter);
 		if (!result){ return false; }
 		return true;
 	}
-	public function destroy($destroy_dependents = false){
+	public function destroy($destroy_dependents = false, &$debug = array(), $stop_before_alter = false){
 		// deletes a record and all of its has_many orphans
-		$result = $this->_relations->destroy($destroy_dependents);
-		if (!result){ return false; }
-		$result = $this->_fields->destroy();
+		$result = $this->_relations->destroy($destroy_dependents, $debug, $stop_before_alter);
+		if (!result && $debug == false){ return false; }
+		$result = $this->_fields->destroy($debug, $stop_before_alter);
 		if (!result){ return false; }
 		return true;
 	}
@@ -243,35 +280,43 @@ abstract class Model
 		return $out;
 	}
 	
-	public static function Get($pk_id){
+	public static function Get($pk_id, &$debug = array()){
 		$classname = get_called_class();
 		$model = new $classname();
 		// check identity map first
-		if (IdentityMap::is_set($model->tablename, $pk_id))
+		if (IdentityMap::is_set($model->tablename, $pk_id) && $debug == false)
 		{
 			return IdentityMap::get($model->tablename, $pk_id);
 		}
 		else
 		{
 			$sql = "SELECT * FROM ".$model->tablename." t WHERE t.".$model->pk."=".addslashes($pk_id);
+			$debug[] = $sql;
 			$db_results = DB::query($sql);
 			if (count($db_results) == 0){ return null; }
 			$model->buildFromDB(reset($db_results));
 			return $model;
 		}
 	}
-	public function First(){
+	public static function First(&$debug = array()){
 		$classname = get_called_class();
 		$model = new $classname();
 		$sql = "SELECT TOP 1 * FROM ".$model->tablename;
+		$debug[] = $sql;
 		$db_results = DB::query($sql);
 		if (count($db_results) == 0){ return null; }
 		$model->buildFromDB(reset($db_results));
 		return $model;
 	}
-	public static function All($sort_by = '', $debug = false){
+	public static function All($sort_by = '', &$debug = array()){
 		$classname = get_called_class();
 		$model = new $classname();
+		
+		if (self::$all_rows_loaded[$model->tablename] && $debug == false)
+		{
+			return IdentityMap::GetAll($model->tablename);
+		}
+		
 		$sql = "SELECT * FROM ".$model->tablename.' ';
 		if ($sort_by != ""){
 			$sql .= " ORDER BY `".$sort_by."` ";
@@ -280,7 +325,7 @@ abstract class Model
 				$sql .= " ORDER BY `name` ";
 			}
 		}
-		if ($debug) { print($sql); return; }
+		$debug[] = $sql;
 		$db_results = DB::query($sql);
 		$obj_array = array();
 		foreach($db_results as $db_row)
@@ -290,6 +335,7 @@ abstract class Model
 			$obj->buildFromDB($db_row);
 			$obj_array[] = $obj;
 		}
+		self::$all_rows_loaded[$model->tablename] = true;
 		return $obj_array;
 	}
 
@@ -362,6 +408,19 @@ abstract class Model
 				throw new \Exception("$relation_name isn't a valid relationship");
 			}
 		}
+	}
+	// used when building results for has many relationship
+	public function buildAll($db_results){
+		$obj_array = array();
+		$klass = get_class($this);
+		$pk_col = $this->pk;
+		foreach($db_results as $db_row)
+		{
+			$obj = new $klass();
+			$obj->buildFromDB($db_row);
+			$obj_array[$obj->$pk_col] = $obj;
+		}
+		return $obj_array;
 	}
 }
 ?>

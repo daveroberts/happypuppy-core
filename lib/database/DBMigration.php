@@ -12,6 +12,7 @@ class DBMigration
 			GRANT ALL PRIVILEGES ON `".$dbname."` . * TO '".$username."'@'%';
 		";
 		DB::RootExec($sql);
+        DB::RootExec("FLUSH PRIVILEGES;");
 	}
 	public static function DropUserAndDB($username, $dbname)
 	{

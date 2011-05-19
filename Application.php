@@ -3,8 +3,10 @@
 	class Application
 	{
 		var $name;
-		var $customPrefix = '';
 		var $title = '';
+		private $debug_app = null;
+		private $default_controller = null;
+		private $before = null;
 		function __construct($name)
 		{
 			$this->name = $name;
@@ -14,6 +16,37 @@
 			// include view helpers and models
 			$this->include_dir('views/helpers/*.php');
 			$this->include_dir('models/*.php');
+		}
+		public function isDebugApp()
+		{
+			if ($this->debug_app != null){ return $this->debug_app; }
+			$rc = new \ReflectionClass($this);
+			$docstring = $rc->getDocComment();
+			$this->debug_app = false;
+			foreach(Annotation::parseDocstring($docstring) as $annotation=>$vals)
+			{
+				if (is_equal_ignore_case($annotation, 'DebugApp'))
+				{
+					$this->debug_app = true;
+				}
+			}
+			return $this->debug_app = true;
+		}
+		public function getDefaultController()
+		{
+			if ($this->default_controller != null){ return $this->default_controller; }
+			$rc = new \ReflectionClass($this);
+			$docstring = $rc->getDocComment();
+			$this->default_controller = '';
+			foreach(Annotation::parseDocstring($docstring) as $annotation=>$vals)
+			{
+				if (is_equal_ignore_case($annotation, 'DefaultController'))
+				{
+					$this->default_controller = $vals[0][0];
+					break;
+				}
+			}
+			return $this->default_controller;
 		}
 		public function AddRoutesToList($route_tree)
 		{
@@ -34,11 +67,6 @@
 				}
 				closedir($handle);
 			}
-		}
-		public function prefix()
-		{
-			if ($this->customPrefix != ''){ return $this->customPrefix; }
-			return $name;
 		}
 		public function root()
 		{

@@ -30,6 +30,12 @@ function textbox($name, $default_value = '', $id = '', $htmlOptions = array()){
 	$text = new \HappyPuppy\HtmlTextbox($name, $default_value, $id, $htmlOptions);
 	return $text->toString();
 }
+
+function password($name = "password", $id = '', $htmlOptions = array()){
+	$text = new \HappyPuppy\HtmlPassword($name, '', $id, $htmlOptions);
+	return $text->toString();
+}
+
 function textarea($name, $default_value = '', $id='', $htmlOptions = array()){
 	$text = new \HappyPuppy\HtmlTextarea($name, $default_value, $id, $htmlOptions);
 	return $text->toString();

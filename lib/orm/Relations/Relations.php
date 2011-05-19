@@ -52,13 +52,14 @@ class Relations
 	}
 	
 	// return the values of the relation object
-	public function getRelationValues($relation_name){
-		if ($this->_has_many->hasRelation($relation_name)){ return $this->_has_many->getRelationValues($relation_name); }
-		if ($this->_has_one->hasRelation($relation_name)){ return $this->_has_one->getRelationValues($relation_name); }
-		if ($this->_habtm->hasRelation($relation_name)){ return $this->_habtm->getRelationValues($relation_name); }
+	public function getRelationValues($relation_name, &$debug){
+		if ($this->_has_many->hasRelation($relation_name)){ return $this->_has_many->getRelationValues($relation_name, $debug); }
+		if ($this->_has_one->hasRelation($relation_name)){ return $this->_has_one->getRelationValues($relation_name, $debug); }
+		if ($this->_habtm->hasRelation($relation_name)){ return $this->_habtm->getRelationValues($relation_name, $debug); }
 		return null;
 	}
 	// TODO see how this is used
+	// does not call DB
 	public function setRelation($relation_name, $new_value){
 		if ($this->_has_many->hasRelation($relation_name))
 		{
@@ -82,6 +83,7 @@ class Relations
 			}
 		}
 	}
+	// does not call DB
 	public function setRelationIDs($relation_name, $ids){
 		if ($this->_has_many->hasRelation($relation_name))
 		{
@@ -97,6 +99,7 @@ class Relations
 		}
 		return false;
 	}
+	// does not call DB
 	public function addIntoRelation($relation_name, $key, $value, $fromDB = false){
 		if ($this->_has_many->hasRelation($relation_name))
 		{
@@ -113,19 +116,19 @@ class Relations
 		return false;
 	}
 	
-	public function save($debug = false){
-		$result = $this->_has_many->saveAllRelations($debug);
+	public function save(&$debug, $stop_before_alter){
+		$result = $this->_has_many->saveAllRelations($debug, $stop_before_alter);
 		if (!$result){ return false; }
-		$result = $this->_habtm->saveAllRelations($debug);
+		$result = $this->_habtm->saveAllRelations($debug, $stop_before_alter);
 		if (!$result){ return false; }
-		$result = $this->_has_one->saveAllRelations($debug);
+		$result = $this->_has_one->saveAllRelations($debug, $stop_before_alter);
 		if (!$result){ return false; }
 		return true;
 	}
-	public function destroy($destroy_dependents){
-		$this->_has_many->destroy($destroy_dependents);
-		$this->_has_one->destroy($destroy_dependents);
-		$this->_habtm->destroy($destroy_dependents);
+	public function destroy($destroy_dependents, &$debug, $stop_before_alter){
+		$this->_has_many->destroy($destroy_dependents, $debug, $stop_before_alter);
+		$this->_has_one->destroy($destroy_dependents, $debug, $stop_before_alter);
+		$this->_habtm->destroy($destroy_dependents, $debug, $stop_before_alter);
 		return true;
 	}
 	

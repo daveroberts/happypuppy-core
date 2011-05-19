@@ -13,6 +13,8 @@
 		var $action;
 		var $params;
 		var $responds_to = 'GET';
+		
+		var $before = array();
 		function __construct($app, $controller, $action, $params = array(), $responds_to = 'GET')
 		{
 			$this->app = $app;
@@ -143,6 +145,58 @@
 				$routeString = substr($routeString, 0, strlen($routeString) - 1);
 			}
 			return $routeString;
+		}
+		function debugInfo($url)
+		{
+			$out = '';
+			$out .= '<strong>Route Path:</strong> '.$this->GetRouteString()."\n";
+			$appFilename = $this->appFilename();
+			if (strcasecmp($appFilename,'') != 0)
+			{
+				if (strcasecmp($appFilename,'HappyPuppy') != 0)
+				{
+					$pos = strpos($appFilename, 'HappyPuppy') + strlen('HappyPuppy') + 1;
+					$appFilename = substr($appFilename, $pos);
+				}
+			}
+			$out .= '<strong>App:</strong> '.$this->app.' <strong>File:</strong> '.$appFilename."\n";
+			$controllerFilename = $this->controllerFilename();
+			if (strcasecmp($controllerFilename,'') != 0)
+			{
+				if (strcasecmp($controllerFilename,'HappyPuppy') != 0)
+				{
+					$pos = strpos($controllerFilename, 'HappyPuppy') + strlen('HappyPuppy') + 1;
+					$controllerFilename = substr($controllerFilename, $pos);
+				}
+			}
+			$out .= '<strong>Controller:</strong> '.$this->controller.' <strong>Class:</strong> '.$this->controllerClassname().' <strong>File:</strong> '.$controllerFilename."\n";
+			if (strcasecmp($this->action, $this->PHPAction()) == 0)
+			{
+				$out .= '<strong>Action:</strong> '.$this->action."\n";
+			}
+			else
+			{
+				$out .= '<strong>Action:</strong> '.$this->action.' (Calls '.$this->PHPAction().' instead) '."\n";
+			}
+			if (count($this->params) > 0)
+			{
+				$args = $this->GetParameters($url);
+				$out .= '<strong>Params:</strong> ';
+				$x = 0;
+				foreach($this->params as $param)
+				{
+					$out .= $param."=".$args[$x].", ";
+					$x++;
+				}
+				$out = substr($out, 0, strlen($out) - 2);
+				$out .= "\n";
+			}
+			if (strcasecmp($this->customRouteString, '') != 0)
+			{
+				$out .= '<strong>Custom Route String</strong> '.$this->customRouteString."\n";
+			}
+			$out .= "\n";
+			return $out;
 		}
 	}
 ?>

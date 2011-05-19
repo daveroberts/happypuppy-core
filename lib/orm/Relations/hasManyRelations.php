@@ -9,11 +9,12 @@ class HasManyRelations extends RelationCollection
 	function __construct($model){
 		parent::__construct($model, true);
 	}
-	protected function doBuildRelation($name){
+	protected function doBuildRelation($name, &$debug){
 		$relation = $this->_relations[$name];
 		$sort_by = $relation->sort_by;
 		$foreign_table = $relation->foreign_table;
 		$foreign_class = $relation->foreign_class;
+		$foreign_model = new $foreign_class();
 		$foreign_key = $relation->foreign_key;
 		$tablename = $this->_model->tablename;
 		$pk = $this->_model->pk;
@@ -25,8 +26,26 @@ class HasManyRelations extends RelationCollection
 		{
 			$sql .= " ORDER BY a.".$sort_by." ";
 		}
-		$db_results = DB::query($sql);
+		
+		$debug[] = $sql;
+		
 		$this->_cached_values[$name] = array();
+		
+		// if we have the foreign table fully loaded, then just pull cached results
+		if (Model::$all_rows_loaded[$foreign_table])
+		{
+			foreach(IdentityMap::GetAll($foreign_table) as $obj)
+			{
+				$pk_string = $obj->pk;
+				if ($obj->$foreign_key == $pk_val)
+				{
+					$this->_cached_values[$name][$obj->$pk_string] = $obj;
+				}
+			}
+			return;
+		}
+		
+		$db_results = DB::query($sql);
 		foreach($db_results as $db_row)
 		{
 			$obj = new $foreign_class();
@@ -59,7 +78,7 @@ class HasManyRelations extends RelationCollection
 		}
 	}
 	
-	public function saveRelation($relation_name, $new_ids, $debug = false){
+	public function saveRelation($relation_name, $new_ids, &$debug, $stop_before_alter){
 		throw new Exception("Need to rethink this");
 		if (!$this->hasRelation($relation_name)){ throw new Exception("No relation named ".$relation_name); }
 		if (!is_array($new_ids)){ throw new Exception($relation_name." must be set to an array"); }
@@ -109,15 +128,15 @@ class HasManyRelations extends RelationCollection
 			else { DB::exec($sql); }
 		}
 		if ($debug){ return false; }
-		$this->buildRelation($relation_name);
+		$this->buildRelation($relation_name, $debug);
 		return true;
 	}
-	public function destroy($destroy_dependents){
+	public function destroy($destroy_dependents, &$debug, $stop_before_alter){
 		foreach($this->_relations as $relation_name=>$relation){
 			if ($destroy_dependents){
 				$obj_arr = $this->_model->$relation_name;
 				foreach($obj_arr as $obj){
-					$obj->destroy();
+					$obj->destroy($debug, $debug_log);
 				}
 			} else {
 				$this_pk_val = $this->_model->pkval;
@@ -125,6 +144,8 @@ class HasManyRelations extends RelationCollection
 				$foreign_table = $relation->foreign_table;
 
 				$sql = "UPDATE $foreign_table SET $foreign_fk_col = NULL WHERE $foreign_fk_col = ".addslashes($this_pk_val);
+				$debug[] = $sql;
+				if ($stop_before_alter){ $debug[] = "Stopped SQL execution"; return false; }
 				$db_results = DB::exec($sql);
 			}
 		}

@@ -8,10 +8,10 @@ class sqlFinder
 	{
 		$this->_dbo = $model;
 	}
-	public function find($args, $debug = false)
+	public function find($args, &$debug)
 	{
-		if ($args == null){ return $this->find_all(array()); }
-		if (is_int($args)){ return $this->find_by_id($args); }
+		if ($args == null){ return $this->find_all(array(), $debug); }
+		if (is_int($args)){ return $this->find_by_id($args, $debug); }
 		if (is_array($args))
 		{
 			$all_ints = true;
@@ -19,24 +19,26 @@ class sqlFinder
 			{
 				if (!is_int($k) || !is_int($v)){ $all_ints = false; break; }
 			}
-			if ($all_ints){ return $this->find_by_ids($args); }
+			if ($all_ints){ return $this->find_by_ids($args, $debug); }
 			return $this->find_all($args, $debug);
 		}
+		$debug[] = "No SQL generated for given";
 		return null;
 	}
-	public function findBy($name, $val)
+	public function findBy($name, $val, &$debug)
 	{
-		return $this->find_all(array("conditions"=>"$name = '".addslashes($val)."'"));
+		return $this->find_all(array("conditions"=>"$name = '".addslashes($val)."'"), $debug);
 	}
-	private function find_by_id($id)
+	private function find_by_id($id, &$debug)
 	{
 		$sql = "SELECT * FROM ".$this->_dbo->tablename." WHERE ".$this->_dbo->pk."=".addslashes($id);
+		$debug[] = $sql;
 		$db_results = DB::query($sql);
 		if (count($db_results) == 0){ return null; }
 		$this->_dbo->buildFromDB(reset($db_results));
 		return true;
 	}
-	private function find_by_ids($ids)
+	private function find_by_ids($ids, &$debug)
 	{
 		$sql = "SELECT * FROM ".$this->_dbo->tablename." WHERE ".$this->_dbo->pk." IN (";
 		foreach($ids as $id)
@@ -45,12 +47,13 @@ class sqlFinder
 		}
 		$sql = rtrim($sql, ", ");
 		$sql .= ")";
+		$debug[] = $sql;
 		$db_results = DB::query($sql);
 		if (count($db_results) == 0){ return null; }
 		$this->_dbo->buildFromDB(reset($db_results));
 		return $this->_dbo;
 	}
-	private function find_all($args, $debug = false)
+	private function find_all($args, &$debug)
 	{
 		$conditions = $args["conditions"];
 		$count = $args["count"];
@@ -59,7 +62,7 @@ class sqlFinder
 		$offset = $args["offset"];
 		$includes = $args["includes"];
 		$sql = "SELECT ";
-		if ($count != null){ $sql .= "COUNT(*) ";} else { $sql .= "* "; }
+		if ($count != null && $count){ $sql .= "COUNT(*) ";} else { $sql .= "* "; }
 		$sql .= " FROM ".$this->_dbo->tablename." ";
 		if ($conditions != null)
 		{
@@ -69,6 +72,13 @@ class sqlFinder
 		{
 			$sql .= " ORDER BY ".$order." ";
 		}
+		else
+		{
+			if ($this->_dbo->hasField("order"))
+			{
+				$sql .= " ORDER BY order ";
+			}
+		}
 		if ($limit != null)
 		{
 			$sql .= " LIMIT ".$limit." ";
@@ -77,7 +87,7 @@ class sqlFinder
 		{
 			$sql .= " OFFSET ".$offset." ";
 		}
-		if ($debug){ return $sql; }
+		$debug[] = $sql;
 		$db_results = DB::query($sql);
 		if ($count)
 		{
@@ -104,6 +114,7 @@ class sqlFinder
 					$sql .= " LEFT JOIN ".$this_table." t ON f.".$foreign_pk_col."=t.".$foreign_key." ";
 					$sql .= " WHERE f.".$foreign_key." IS NOT NULL ";
 					if ($sort_by) { $sql .= " ORDER BY ".$sort_by." "; }
+					$debug[] = $sql;
 					$db_results = DB::query($sql);
 					// Can't use build_all because we want to use the THIS_PK information
 					// which would be lost if we didn't use it here
@@ -122,6 +133,7 @@ class sqlFinder
 					$sql .= " LEFT JOIN ".$this_table." t ON f.".$foreign_key."=t.".$pk_col." ";
 					$sql .= " WHERE f.".$foreign_key." IS NOT NULL ";
 					if ($sort_by) { $sql .= " ORDER BY ".$sort_by." "; }
+					$debug[] = $sql;
 					$db_results = DB::query($sql);
 					foreach($db_results as $db_row)
 					{
@@ -144,6 +156,7 @@ class sqlFinder
 					$sql .= " LEFT JOIN ".$link_table." l ON f.".$foreign_pk_col."=l.".$link_table_fk_foreigntable." ";
 					$sql .= " LEFT JOIN ".$this_table." t ON l.".$link_table_fk_here."=t.".$pk_col." ";
 					if ($sort_by) { $sql .= " ORDER BY ".$sort_by." "; }
+					$debug[] = $sql;
 					$db_results = DB::query($sql);
 					foreach($db_results as $db_row)
 					{

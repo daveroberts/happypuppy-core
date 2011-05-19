@@ -20,7 +20,11 @@ class DB
 	private static function wQuery($db, $sql) {
 		if ($db == null){ throw new \Exception("Could not connect to database"); }
 		$stmt = $db->prepare($sql);
+		$time_start = microtime(true);
 		$stmt->execute();
+		$time_end = microtime(true);
+		$time = $time_end - $time_start;
+		Debug::sql($sql, $time);
 		$arr = array();
 		while($row = $stmt->fetch(\PDO::FETCH_ASSOC))
 		{
@@ -42,8 +46,12 @@ class DB
 	}
 	private static function wExec($db, $sql){
 		if ($db == null){ throw new \Exception("Could not connect to database"); }
-		$db->exec($sql);
-		return true; // $db->exec incorrectly returns 0 when 1 row is affected
+		$time_start = microtime(true);
+		$result = $db->exec($sql);
+		$time_end = microtime(true);
+		$time = $time_end - $time_start;
+		Debug::sql($sql, $time);
+		return $result; // $db->exec incorrectly returns 0 when 1 row is affected
 	}
 	static function lastInsertId()
 	{

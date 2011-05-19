@@ -18,6 +18,14 @@ class Inflector
 		{
 			return substr($noun, 0, strlen($noun) - 1).'ies';
 		}
+		if (substr($noun, strlen($noun) - 1, 1) == 's')
+		{
+			return substr($noun, 0, strlen($noun) - 1).'ses';
+		}
+		if (substr($noun, strlen($noun) - 1, 1) == 'z')
+		{
+			return substr($noun, 0, strlen($noun) - 1).'zes';
+		}
 		return $noun.'s';
 	}
 	public static function singular($noun){
@@ -31,6 +39,14 @@ class Inflector
 		if (substr($noun, strlen($nount) - 3, 3) == 'ies')
 		{
 			return substr($noun, 0, strlen($noun) - 3).'y';
+		}
+		if (substr($noun, strlen($nount) - 3, 3) == 'zes')
+		{
+			return substr($noun, 0, strlen($noun) - 3).'z';
+		}
+		if (substr($noun, strlen($nount) - 3, 3) == 'ses')
+		{
+			return substr($noun, 0, strlen($noun) - 3).'s';
 		}
 		return rtrim($noun, 's');
 	}

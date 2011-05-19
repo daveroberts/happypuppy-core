@@ -9,7 +9,7 @@ class HasOneRelations extends RelationCollection
 	function __construct($model){
 		parent::__construct($model, false);
 	}
-	public function doBuildRelation($name){
+	public function doBuildRelation($name, &$debug){
 		$relation = $this->_relations[$name];
 		$sort_by = $relation->sort_by;
 		$foreign_table = $relation->foreign_table;
@@ -19,13 +19,22 @@ class HasOneRelations extends RelationCollection
 		$foreign_key_value = $this->_model->$foreign_key;
 		if ($foreign_key_value == null)
 		{
+			$debug_log[] = "Foreign Key is null";
 			return null;
 		}
+		
 		$obj = new $foreign_class();
 		$sql = "SELECT a.* FROM ".$foreign_table." a ";
 		$pk_string = $this->_model->pk;
 		$pk_foreign = $obj->pk;
 		$sql .=" WHERE a.".$pk_foreign."='".$foreign_key_value."' ";
+		$debug[] = $sql;
+		
+		if (IdentityMap::is_set($foreign_table, $foreign_key_value))
+		{
+			$this->_cached_values[$name] = IdentityMap::get($foreign_table, $foreign_key_value);
+		}
+		
 		$db_results = DB::query($sql);
 		$this->_cached_values[$name] = null;
 		if (count($db_results) == 1)
@@ -57,7 +66,7 @@ class HasOneRelations extends RelationCollection
 		$this->_cached_values[$relation_name] = $value;
 	}
 	
-	public function saveRelation($relation_name, $new_ids, $debug = false){
+	public function saveRelation($relation_name, $new_ids, &$debug, $stop_before_alter){
 		if (!$this->hasRelation($relation_name)){ throw new Exception("No relation named ".$relation_name); }
 		$relation = $this->_relations[$relation_name];
 		$new_id = $new_ids[0];
@@ -79,12 +88,13 @@ class HasOneRelations extends RelationCollection
 		$sql .= "SET ".$foreign_key."=".$new_id." ";
 		$sql .= "WHERE ".$pk_col."=".$pk_val." ";
 		$sql .= "LIMIT 1";
-		if ($debug){ print($sql); return false; }
+		$debug[] = $sql;
+		if ($stop_before_alter){ $debug[] = "Stopped SQL execution"; return false; }
 		DB::exec($sql);
-		$this->buildRelation($relation_name);
+		$this->buildRelation($relation_name, $debug);
 		return true;
 	}
-	public function destroy($destroy_dependents){
+	public function destroy($destroy_dependents, &$debug, $stop_before_alter){
 		foreach($this->_relations as $relation){
 			$tablename = $this->_model->tablename;
 			$pk = $this->_model->pk;
@@ -92,6 +102,9 @@ class HasOneRelations extends RelationCollection
 			$foreign_key = $relation->foreign_key;
 
 			$sql = "UPDATE $tablename SET $foreign_key = null where $pk = ".addslashes($pk_value)." LIMIT 1";
+			$debug[] = $sql;
+			if ($stop_before_alter){ $debug[] = "Stopped SQL execution"; return false; }
+
 			$db_results = DB::exec($sql);
 		}
 	}

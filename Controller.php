@@ -12,7 +12,16 @@ class Controller
 		$this->title = $app_instance->title;
 	}
 	public function __baseinit(){
-		
+		$vars = get_object_vars($this->app_instance);
+		if (count($vars)>0)
+		{
+			foreach($vars as $key => $value)
+			{
+				if (is_equal($key, "name")){ continue; }
+				if (is_equal($key, "title")){ continue; }
+				$this->$key = $value;
+			}
+		}
 	}
 	// render variables
 	var $render_engine = "";
@@ -24,10 +33,20 @@ class Controller
 	var $xml_only = false;
 	var $json_only = false;
 	var $responds_to = '';
+	
+	private $before = null;	
+	private $default_action = null;
+	
 	// These are helper methods you may call
 	public function renderText($text = null){
 		if ($text != null){ echo $text; }
 		$this->text_only = true;
+	}
+	public function processView()
+	{
+		return (!$this->text_only && 
+			!$this->xml_only &&
+			!$this->json_only);
 	}
 	public function renderXML($xml = null){
 		if ($xml != null){ echo $xml; }
@@ -52,51 +71,56 @@ class Controller
 		header("Location: ".url_for($location));
 		exit();
 	}
-	public function runBeforeFilters($action)
+	public function runFilters($action, $methods)
 	{
-		$this->runFilters($action, $this->before, $this->not_before);
+		foreach($methods as $method)
+		{
+			if (strpos($method, "::"))
+			{
+				$refl = new \ReflectionClass($this);
+				call_user_func("\\".$refl->getNamespaceName()."\\".$method);
+			}
+			else
+			{
+				call_user_func(array($this, $method));
+			}
+		}
 	}
-	private function runFilters($action, $filters, $unfiltered)
+	function getDefaultAction()
 	{
-		// Determine which filters to run
-		$to_run = array();
-		if ($filters != null)
+		if ($this->default_action != null){ return $this->default_action; }
+		$rc = new \ReflectionClass($this);
+		$docstring = $rc->getDocComment();
+		$this->default_action = '';
+		foreach(Annotation::parseDocstring($docstring) as $annotation=>$vals)
 		{
-			foreach($filters as $filtered_action=>$filtered_methods)
+			if (is_equal_ignore_case($annotation, 'DefaultAction'))
 			{
-				if ($filtered_methods == "*"){ array_push($to_run, $filtered_action); continue; }
-				foreach($filtered_methods as $method)
-				{
-					if ($method == $action){ array_push($to_run, $filtered_action); continue; }
-				}
+				$this->default_action = $vals[0][0];
 			}
 		}
-		if ($unfiltered != null)
-		{
-			foreach($unfiltered as $filtered_action=>$filtered_methods)
-			{
-				foreach($filtered_methods as $method)
-				{
-					if ($method == $action){ unset($to_run[array_search($method, $to_run)]); continue; }
-				}
-			}
-		}
-		foreach($to_run as $filtered_action)
-		{
-			call_user_func(array($this , $filtered_action));
-		}
+		return $this->default_action;
 	}
 	function AddRoutesToList($route_list)
 	{
 		// iterate over controller methods, add to router
 		$refl = new \ReflectionClass($this); 
+		
+		if ($this->app_instance == null)
+		{
+			throw new \Exception("Your controller ".$refl->getName()." can't declare a constructor.<br />\nInstead, add a function named __init() and place your constructor's code there.");
+		}
+		
   		$methods = $refl->getMethods();
   		foreach($methods as $method)
   		{
   			if ($method->class == 'HappyPuppy\Controller'){ continue; }
   			if ($method->name == '__init'){ continue; }
   			if ($method->name == 'defaultAction'){ continue; }
-  			// Controller = 10
+			if ($method->name == '__construct'){ continue; }
+			
+			if (!$this->isRoute($method)){ continue; }
+
   			$controller_name = substr($method->class, 0, strlen($method->class)-10);
   			$slashpos = strpos($controller_name, '\\');
   			if ($slashpos != -1)
@@ -115,38 +139,39 @@ class Controller
   			$custom_routes = Controller::GetCustomRoutes($docstring);
   			$method_name = $method->name;
   			$method_name = Route::NonPHPAction($method_name);
+
+			$before_filters = $this->getActionBeforeFilters($method);
   			
+			$master_route = new Route($this->app_instance->name, $controller_name, $method_name, $params, 'GET');
+			$master_route->before = $before_filters;
+			
   			// start populating routes
   			if (!empty($custom_routes))
   			{
 				foreach($custom_routes as $custom_route)
 				{
-					$route = new Route($this->app_instance->name, $controller_name, $method_name, $params, $custom_route[0]);
+					$route = clone $master_route;
+					$route->responds_to = $custom_route[0];
 					$route->customRouteString = $custom_route[1];
 					$routes[] = $route;
 				}
   			}
   			else
   			{
-				$routes[] = new Route($this->app_instance->name, $controller_name, $method_name, $params, 'GET');
+				$route = clone $master_route;
+				$routes[] = $route;
 				// if this is the default action, add a route
-				$defaultAction = '';
-				if (method_exists($this, "defaultAction")){
-					$defaultAction = $this->defaultAction();
-				}
-				if (strcasecmp($method_name, $defaultAction) == 0)
+				$defaultAction = $this->getDefaultAction();
+				if (is_equal($method_name, $defaultAction))
   				{
-					$route = new Route($this->app_instance->name, $controller_name, $method_name, $params);
+					$route = clone $master_route;
 					$route->omit_action = true;
 					$routes[] = $route;
 					// if this is also the default controller, add yet another route
-					$defaultController = '';
-					if (method_exists($this->app_instance, "defaultController")){
-						$defaultController = $this->app_instance->defaultController();
-					}
-					if (strcasecmp($defaultController, $controller_name) == 0)
+					$defaultController = $this->app_instance->getDefaultController();
+					if (is_equal($defaultController, $controller_name))
 					{
-						$route = new Route($this->app_instance->name, $controller_name, $method_name, $params);
+						$route = clone $master_route;
 						$route->omit_action = true;
 						$route->omit_controller = true;
 						$routes[] = $route;
@@ -168,7 +193,7 @@ class Controller
 		$return = array();
 		foreach(Annotation::parseDocstring($docstring) as $annotation=>$vals)
 		{
-			if ($annotation == 'Route')
+			if (strcasecmp($annotation, 'Route') == 0)
 			{
 				foreach($vals as $routeinfo)
 				{
@@ -177,6 +202,119 @@ class Controller
 			}
 		}
 		return $return;
+	}
+	private function getBeforeFilters()
+	{
+		if ($this->before != null){ return $this->before; }
+		$this->before = array();
+		$refl = new \ReflectionClass($this);
+		$docstring = $refl->getDocComment();
+		foreach(Annotation::parseDocstring($docstring) as $annotation=>$vals)
+		{
+			if (strcasecmp($annotation, 'Before') == 0)
+			{
+				foreach($vals as $methods)
+				{
+					foreach($methods as $method)
+					{
+						$this->before[] = $method;
+					}
+				}
+			}
+		}
+		foreach(Annotation::parseDocstring($docstring) as $annotation=>$vals)
+		{
+			if (strcasecmp($annotation, 'NotBefore') == 0)
+			{
+				foreach($vals as $methods)
+				{
+					foreach($methods as $not_before_method)
+					{
+						foreach($this->before as $k=>$b_method)
+						{
+							if (is_equal($b_method, $not_before_method))
+							{
+								unset($this->before[$k]);
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+		return $this->before;
+	}
+	private function getActionBeforeFilters($method)
+	{
+		$before = $this->getBeforeFilters();
+		$rm = new \ReflectionMethod($method->class, $method->name);
+		$docstring = $rm->getDocComment();
+		foreach(Annotation::parseDocstring($docstring) as $annotation=>$vals)
+		{
+			if (strcasecmp($annotation, 'Before') == 0)
+			{
+				foreach($vals as $methods)
+				{
+					foreach($methods as $method)
+					{
+						$before[] = $method;
+					}
+				}
+			}
+		}
+		foreach(Annotation::parseDocstring($docstring) as $annotation=>$vals)
+		{
+			if (strcasecmp($annotation, 'NotBefore') == 0)
+			{
+				foreach($vals as $methods)
+				{
+					foreach($methods as $not_before_method)
+					{
+						foreach($before as $k=>$b_method)
+						{
+							if (is_equal($b_method, $not_before_method))
+							{
+								unset($before[$k]);
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+		return $before;
+	}
+	private function isRoute($method)
+	{
+		$before = $this->getBeforeFilters();
+		$rm = new \ReflectionMethod($method->class, $method->name);
+		$docstring = $rm->getDocComment();
+		foreach(Annotation::parseDocstring($docstring) as $annotation=>$vals)
+		{
+			if (strcasecmp($annotation, 'NotRoute') == 0)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	public function debugInfo()
+	{
+		$out = '';
+		if ($this->text_only || 
+				$this->xml_only ||
+				$this->json_only)
+		{
+				if ($this->text_only) {
+					$out .= "Text output only\n";
+				} else if ($this->xml_only) {
+					$out .= "XML output\n";
+				} else {
+					$out .= "JSON output\n";
+				}
+		} else {
+		}
+		return $out;
 	}
 }
 ?>

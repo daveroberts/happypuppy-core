@@ -52,6 +52,11 @@ class Fields
 		$type = $field_structure["fields"][$name];
 		return $type == 'date';
 	}
+	private function isBoolField($name){
+		$field_structure = DB::get_field_structure($this->_model->tablename);
+		$type = $field_structure["fields"][$name];
+		return strcmp(substr($type, 0, 7), 'tinyint') == 0;
+	}
 
 	public function buildFromDB($arr){
 		foreach($this->fieldNames() as $field)
@@ -70,18 +75,18 @@ class Fields
 		}
 	}
 
-	public function save(&$error_msg, $debug = false){
+	public function save(&$error_msg, &$debug, $stop_before_alter){
 		if ($this->getField($this->getPK()) == null)
 		{
 			$before_insert = $this->beforeInsert($error_msg);
 			if (!$before_insert){ return false; }
-			return $this->insert($debug);
+			return $this->insert($debug, $stop_before_alter);
 		}
 		else
 		{
 			$before_update = $this->beforeUpdate($error_msg);
 			if (!$before_update){ return false; }
-			return $this->update($debug);
+			return $this->update($debug, $stop_before_alter);
 		}
 	}
 	private function beforeInsert(&$error_msg){
@@ -95,7 +100,7 @@ class Fields
 		}
 		return true;
 	}
-	private function insert($debug = false){
+	private function insert(&$debug, $stop_before_alter){
 		$sql = "INSERT INTO ".$this->_model->tablename." (";
 		foreach($this->fieldNames() as $field)
 		{
@@ -116,14 +121,21 @@ class Fields
 					$date = Fields::formatDate(addslashes($this->getField($field)));
 					if (!$date){ $date = "NULL"; }
 					$sql .= "'".addslashes($date)."', ";
-				} else {
+				} else if ($this->isBoolField($field)) {
+					if ($this->getField($field)){
+						$sql .= "'1', ";
+					} else {
+						$sql .= "'0', ";
+					}
+				}else {
 					$sql .= "'".addslashes($this->getField($field))."', ";
 				}
 			}
 		}
 		$sql = rtrim($sql, ", ");
 		$sql .= ")";
-		if ($debug){ print $sql; return false; }
+		$debug[] = $sql;
+		if ($stop_before_alter){ $debug[] = "Stopped SQL execution"; return false; }
 		$result = DB::exec($sql);
 		if ($result)
 		{
@@ -144,37 +156,51 @@ class Fields
 		}
 		return true;
 	}
-	private function update($debug = false){
+	private function update(&$debug, $stop_before_alter){
 		$sql = "UPDATE ".$this->_model->tablename." SET ";
+		$any_fields_changed = false;
 		foreach($this->fieldNames() as $field)
 		{
 			if ($field == $this->getPK()){ continue; }
 			if (array_key_exists($field, $this->_cached_field_values) &&
 				$this->_cached_field_values[$field] != $this->_db_field_values[$field])
 			{
+				$any_fields_changed = true;
 				if ($this->isDateField($field)){
 					$date = Fields::formatDate($this->getField($field));
 					if (!$date){ $date = "NULL"; }
 					$sql .= "`".$field."`='".addslashes($date)."', ";
-				} else {
+				} else if ($this->isBoolField($field)) {
+					if ($this->getField($field)){
+						$sql .= "`".$field."`='1', ";
+					} else {
+						$sql .= "`".$field."`='0', ";
+					}
+				}else {
 					$sql .= "`".$field."`='".addslashes($this->getField($field))."', ";
 				}
 				
 			}
 		}
+		if (!$any_fields_changed){
+			$debug[] = "Nothing to update"; return true;
+		}
 		$sql = rtrim($sql, ", ");
 		$sql .= " WHERE `".$this->getPK()."`='".$this->getField($this->getpk())."'";
-		if ($debug){ print($sql); return false; }
+		$debug[] = $sql;
+		if ($stop_before_alter){ $debug[] = "Stopped SQL execution"; return false; }
 		$result = DB::exec($sql);
 		return $result;
 	}
 
-	public function delete(){
+	public function delete(&$debug, $stop_before_alter){
 		$sql = "DELETE FROM ".$this->_model->tablename." WHERE ".$this->getPK()."='".addslashes($this->getField($this->getPK()))."' LIMIT 1";
+		$debug[] = $sql;
+		if ($stop_before_alter){ $debug[] = "Stopped SQL execution"; return false; }
 		return DB::exec($sql);
 	}
-	public function destroy(){
-		return $this->delete();
+	public function destroy(&$debug, $stop_before_alter){
+		return $this->delete($debug, $stop_before_alter);
 	}
 	public function prettyPrint(){
 		$out = '';

@@ -15,6 +15,18 @@ function isAjaxRequest(){
 			strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
 }
 
+function is_empty($str){
+	return strcmp($str, '') == 0;
+}
+
+function is_equal($str1, $str2){
+	return strcasecmp($str1, $str2) == 0;
+}
+
+function is_equal_ignore_case($str1, $str2){
+	return strcmp($str1, $str2) == 0;
+}
+
 function setflash($str){
 	if ($str == null || strcmp($str, '') == 0){ return; }
 	$_SESSION["flash"] = $str;

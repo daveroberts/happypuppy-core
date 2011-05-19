@@ -5,6 +5,30 @@ class PhpRender implements iRender
 	public function process($controller_obj, $controller_name, $action)
 	{
 		if ($action == null || $action == ''){ $action = 'index'; }
+		$view_template = $this->getViewTemplate($controller_obj, $controller_name, $action);
+		if (!file_exists($view_template) AND !__DEBUG__){ not_found(); }
+		if ($controller_obj->layout)
+		{
+			$content = $this->file_with_obj($view_template, $controller_obj);
+			
+			$head_template = $this->getHeadTemplate($controller_name, $action);
+			$head = "";
+			if (file_exists($head_template))
+			{
+				$head = $this->file_with_obj($head_template, $controller_obj);
+			}
+			$controller_obj->content = $content;
+			$controller_obj->head = $head;
+			$layout_template = $this->getLayoutTemplate($controller_obj);
+			return $this->file_with_obj($layout_template, $controller_obj);
+		}
+		else
+		{
+			return $this->file_with_obj($view_template, $controller_obj);
+		}
+	}
+	private function getViewTemplate($controller_obj, $controller_name, $action)
+	{
 		$view_template = $controller_obj->view_template;
 		if ($view_template == '')
 		{
@@ -14,33 +38,25 @@ class PhpRender implements iRender
 		{
 			$view_template = $_ENV["app"]->root().'views/'.$view_template.'.php';
 		}
-		if (!file_exists($view_template) AND !__DEBUG__){ not_found(); }
-		if ($controller_obj->layout)
+		return $view_template;
+	}
+	private function getHeadTemplate($controller_name, $action)
+	{
+		$head_template = $_ENV["app"]->root().'views/'.$controller_name.'/'.$action.'.head.php';
+		return $head_template;
+	}
+	private function getLayoutTemplate($controller_obj)
+	{
+		$layout_template = $controller_obj->layout_template;
+		if ($layout_template == "")
 		{
-			$content = $this->file_with_obj($view_template, $controller_obj);
-			$head_template = $_ENV["app"]->root().'views/'.$controller_name.'/'.$action.'.head.php';
-			$head = "";
-			if (file_exists($head_template))
-			{
-				$head = $this->file_with_obj($head_template, $controller_obj);
-			}
-			$controller_obj->content = $content;
-			$controller_obj->head = $head;
-			$layout_template = $controller_obj->layout_template;
-			if ($layout_template == "")
-			{
-				$layout_template = $_ENV["app"]->root().'views/layout.php';
-			}
-			else
-			{
-				$layout_template = $_ENV["app"]->root().'views/'.$layout_template.'.php';
-			}
-			return $this->file_with_obj($layout_template, $controller_obj);
+			$layout_template = $_ENV["app"]->root().'views/layout.php';
 		}
 		else
 		{
-			return $this->file_with_obj($view_template, $controller_obj);
+			$layout_template = $_ENV["app"]->root().'views/'.$layout_template.'.php';
 		}
+		return $layout_template;
 	}
 	public function file_with_arr($file, $arr)
 	{
@@ -85,6 +101,23 @@ class PhpRender implements iRender
 	public function file($file)
 	{
 		return $this->file_with_var($file, null, null);
+	}
+	public function debugInfo($controller_obj, $controller_name, $action)
+	{
+		$out = '';
+		$layout_template = $this->getLayoutTemplate($controller_obj);
+		$pos = strpos($layout_template, 'apps');
+		$layout_template = substr($layout_template, $pos);
+		$out .= "Layout Template: ".$layout_template."\n";
+		$head_template = $this->getHeadTemplate($controller_name, $action);
+		$pos = strpos($head_template, 'apps');
+		$head_template = substr($head_template, $pos);
+		$out .= "Head Template: ".$head_template."\n";
+		$view_template = $this->getViewTemplate($controller_obj, $controller_name, $action);
+		$pos = strpos($view_template, 'apps');
+		$view_template = substr($view_template, $pos);
+		$out .= "View Tempalte: ".$view_template."\n";
+		return $out;
 	}
 	public static function render_arr($file, $vars)
 	{

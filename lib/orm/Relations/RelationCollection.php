@@ -17,12 +17,12 @@ abstract class RelationCollection
 	}
 	
 	// load relation
-	protected function buildRelation($relation_name)
+	protected function buildRelation($relation_name, &$debug)
 	{
-		$this->doBuildRelation($relation_name);
+		$this->doBuildRelation($relation_name, $debug);
 		$this->_dirty_marks[$relation_name] = false;
 	}
-	protected abstract function doBuildRelation($relation_name);
+	protected abstract function doBuildRelation($relation_name, &$debug);
 	
 	// relationship add / has / get
 	public function addRelation($relation){
@@ -38,10 +38,10 @@ abstract class RelationCollection
 		}
 		return null;
 	}
-	public function getRelationValues($relation_name){
+	public function getRelationValues($relation_name, &$debug){
 		if (!array_key_exists($relation_name, $this->_cached_values))
 		{
-			$this->buildRelation($relation_name);
+			$this->buildRelation($relation_name, &$debug);
 		}
 		return $this->_cached_values[$relation_name];
 	}
@@ -72,15 +72,15 @@ abstract class RelationCollection
 	}
 	
 	// save relations
-	public function saveAllRelations($debug = false){
+	public function saveAllRelations(&$debug, $stop_before_alter){
 		foreach($this->_relations as $relation_name=>$relation)
 		{
-			$result = $this->save($relation_name, $debug);
+			$result = $this->save($relation_name, $debug, $stop_before_alter);
 			if (!$result){ return false; }
 		}
 		return true;
 	}
-	public function save($relation_name, $debug = false){
+	public function save($relation_name, &$debug, $stop_before_alter){
 		if (!$this->hasRelation($relation_name)){ throw new Exception("No Relation named: ".$relation_name); }
 		if (!$this->isDirty($relation_name)){ return true; }
 		$new_ids = array();
@@ -104,15 +104,15 @@ abstract class RelationCollection
 				$new_ids[] = null;
 			}
 		}
-		$result = $this->saveRelation($relation_name, $new_ids, $debug);
+		$result = $this->saveRelation($relation_name, $new_ids, $debug, $stop_before_alter);
 		if ($result)
 		{
 			$this->_dirty_marks[$relation_name] = false;
 		}
 		return $result;
 	}
-	protected abstract function saveRelation($relation_name, $ids);
-	public abstract function destroy($destroy_dependents);
+	protected abstract function saveRelation($relation_name, $ids, &$debug, $stop_before_alter);
+	public abstract function destroy($destroy_dependents, &$debug, $stop_before_alter);
 	
 	public function prettyPrint(){
 		$out = '';

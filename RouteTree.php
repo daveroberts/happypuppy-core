@@ -18,8 +18,7 @@
 				require_once($filepath);
 				$app_classname = $app.'\\Application';
 				$app_instance = new $app_classname($app);
-				if (method_exists($app_instance, "isDebugApp") &&
-					$app_instance->isDebugApp() &&
+				if ($app_instance->isDebugApp() &&
 					$_ENV["config"]["env"] != Environment::DEV)
 				{
 					continue;
@@ -31,10 +30,6 @@
 		}
 		function AddRoute($route)
 		{
-			if ($route->omit_controller && $route->omit_action)
-			{
-				$asdf = 000;
-			}
 			$parts = $route->GetRouteParts();
 			$num_parts = count($parts);
 			$current = &$this->route_tree;

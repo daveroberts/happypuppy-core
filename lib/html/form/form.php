@@ -4,10 +4,12 @@ namespace HappyPuppy;
 class form
 {
 	private $model;
+	private $modifier;
 
-	function __construct($model){
-		if ($model == null){ throw new Exception("The model passed to the form is null"); }
+	function __construct($model, $modifier = ''){
+		if ($model == null){ throw new \Exception("The model passed to the form is null"); }
 		$this->model = $model;
+		$this->modifier = $modifier;
 	}
 	public function start($location, $html_options = array()){
 		return \form_start($location, $html_options);
@@ -24,7 +26,11 @@ class form
 	public function hidden($field, $value){
 		return \hidden($this->inputFieldDefaultID($field), $value);
 	}
-	public function input($property, $options = array()){
+	public function inputHidden($property, $options = array())
+	{
+		return $this->input($property, $options, true);
+	}
+	public function input($property, $options = array(), $hidden = false;){
 		if ($this->model->hasField($property))
 		{
 			return $this->inputField($property, $options);
@@ -35,6 +41,16 @@ class form
 		}
 		throw new \Exception("$property is neither a field nor a relationship for ".get_class($this->model));
 	}
+	public function radio($name, $value, $options = array()){
+		$selected = null;
+		$mv = $this->model->getValue($name);
+		if(strcasecmp($mv, $value) == 0)
+		{
+			$selected = true;
+		}
+		$r = new HtmlRadio($this->inputFieldDefaultID($name), $value, $selected, '', $options);
+		return $r->toString();
+	}
 	public function submit($value, $html_options = array()){
 		$s = new HtmlSubmit($value, $html_options);
 		return $s->toString();
@@ -43,13 +59,19 @@ class form
 		return "</form>";
 	}
 	private function inputFieldDefaultID($name){
+		$field_name = '';
 		$refl = new \ReflectionClass(get_class($this->model));
 		$modelname = $refl->getShortName();
 		if ($this->model->hasRelation($name)){
-			return $modelname."[rel_ids_".$name."]";
+			$field_name = $modelname."[rel_ids_".$name;
+			if (strcmp($this->modifier,'') != 0){ $field_name .= '-'.$this->modifier; }
+			$field_name .= "]";
 		} else {
-			return $modelname."[".$name."]";
+			$field_name = $modelname."[".$name;
+			if (strcmp($this->modifier,'') != 0){ $field_name .= '-'.$this->modifier; }
+			$field_name .= "]";
 		}
+		return $field_name;
 	}
 	private function inputField($name, $htmlOptions){
 		$field_structure = DB::get_field_structure($this->model->tablename);
