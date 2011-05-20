@@ -54,7 +54,6 @@ class Debug // modified from stack overflow
 			$data['file'] = substr($data['file'], $pos);
 			$data['function'] = "None";
 			$data['line'] = $call[$x-1]['line'];
-			//print_r($call); exit();
 		}
 		$data['class'] = $call[$x]['class'];
 		if (strcasecmp($data['class'],'') == 0)

@@ -81,8 +81,7 @@
 				}
 				else
 				{
-					print("Can't load application: ".$route->app.".  Make sure you have a folder named ".$route->app." containing a file named Application.php containing a class named Application");
-					exit();
+					throw new \Exception("Can't load application: ".$route->app.".  Make sure you have a folder named ".$route->app." containing a file named Application.php containing a class named Application");
 				}
 			}
 			$app_classname = $route->app.'\\Application';

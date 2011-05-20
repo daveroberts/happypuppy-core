@@ -27,7 +27,6 @@ class HamlRender implements iRender
 			$page = str_replace('$content', $content, $layout);
 			$page = str_replace('$head',$head,$page);
 			print $page;
-			exit();
 		}
 		else
 		{

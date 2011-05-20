@@ -30,7 +30,7 @@ class form
 	{
 		return $this->input($property, $options, true);
 	}
-	public function input($property, $options = array(), $hidden = false;){
+	public function input($property, $options = array()){
 		if ($this->model->hasField($property))
 		{
 			return $this->inputField($property, $options);
