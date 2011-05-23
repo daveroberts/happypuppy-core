@@ -44,7 +44,7 @@
 				// if not, we need to collect class variables, package them and process here
 				// find out which render engine the page load wants to use:
 				$render_engine = $_ENV["config"]["render_engine"];
-				if ($_ENV["app"]->render_engine != null){ $render_engine = $_ENV["app"]->render_engine; }
+				if (isset($_ENV["app"]->render_engine)) { $render_engine = $_ENV["app"]->render_engine; }
 				if ($_ENV["controller"]->render_engine != null){ $render_engine = $_ENV["controller"]->render_engine; }
 				$render_engine_classname = $render_engine.'Render';
 				$render_engine_instance = new $render_engine_classname();

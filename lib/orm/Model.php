@@ -59,6 +59,9 @@ abstract class Model
 	protected function has_many($relation_name, $sort_by='', $foreign_class = '', $foreign_table = '', $foreign_key = ''){
 		$this->_relations->addHasMany($relation_name, $sort_by, $foreign_class, $foreign_table, $foreign_key);
 	}
+	protected function belongs_to($relation_name, $foreign_class = '', $foreign_table = '', $foreign_key = ''){
+		$this->_relations->addBelongsTo($relation_name, $foreign_class, $foreign_table, $foreign_key);
+	}
 	protected function has_one($relation_name, $foreign_class = '', $foreign_table = '', $foreign_key = ''){
 		$this->_relations->addHasOne($relation_name, $foreign_class, $foreign_table, $foreign_key);
 	}
@@ -123,7 +126,7 @@ abstract class Model
 		else
 		{
 			$refl = new \ReflectionClass($this);
-			throw new \Exception("Unable to determine what a ".$name." is on a ".$refl->getShortName());
+			throw new \Exception('"'.$name."\" isn't a valid model or relationship on ".$refl->getShortName());
 		}
 	}
 	// used by forms
@@ -194,7 +197,16 @@ abstract class Model
 		$this->_fields->buildFromForm($arr);
 		$this->_relations->buildFromForm($arr);
 	}
-	public static function FindBySQL($sql){
+	public static function FindBySQL($sql, $params){
+		$num_args = func_num_args();
+		$args = array();
+		if ($num_args > 1){
+			$args = func_get_args();
+			array_shift($args); // chop off sql
+		}
+		foreach($args as $arg){
+			$sql = Model::replaceNextArg($sql, $arg);
+		}
 		$db_results = DB::query($sql);
 		$klass = get_called_class();
 		$obj = new $klass();
@@ -209,12 +221,53 @@ abstract class Model
 		$args["count"] = true;
 		return $this->_sqlFinder->find($args, $debug);
 	}
+	public static function WhereDebug(&$debug, $conditions, $params = null)
+	{
+		$classname = get_called_class();
+		return forward_static_call_array(array($classname, 'PWhere'), func_get_args());
+	}
+	public static function Where($conditions, $params = null)
+	{
+		$classname = get_called_class();
+		$args = func_get_args();
+		$debug = null;
+		array_unshift($args, &$debug);
+		return forward_static_call_array(array($classname, 'PWhere'), $args);
+	}
+	private static function PWhere(&$debug, $conditions, $params)
+	{
+		$classname = get_called_class();
+		$num_args = func_num_args();
+		$args = array();
+		if ($num_args == 3){
+			if (is_string($params) || is_int($params)){
+				$args[] = $params;
+			} else if (is_array($params)){
+				$args = $params;
+			} else {
+				throw new \Exception("Argument passed to Where must be either a string or an array");
+			}
+		} else if ($num_args > 2) {
+			$args = func_get_args();
+			array_shift($args); // chop off debug
+			array_shift($args); // chop off conditions
+		}
+		foreach($args as $arg){
+			$conditions = Model::replaceNextArg($conditions, $arg);
+		}
+		return $classname::Find(array("conditions"=>$conditions), $debug);
+	}
+	private static function replaceNextArg($conditions, $var){
+		$pos = strpos($conditions, '?');
+		$conditions = substr($conditions,0,$pos).addslashes($var).substr($conditions,$pos + 1);
+		return $conditions;
+	}
 	public static function Find($args, &$debug = array()){
 		$classname = get_called_class();
 		$model = new $classname();
-		return $model->pFind($args, $debug, $debug_log);
+		return $model->pFind($args, $debug);
 	}
-	public function pFind($args, $debug = false){
+	public function pFind($args, &$debug){
 		return $this->_sqlFinder->find($args, $debug);
 	}
 	public static function FindBy($name, $val, &$debug = array()){

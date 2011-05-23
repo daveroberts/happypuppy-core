@@ -30,7 +30,14 @@ class Fields
 	public function getField($name){
 		if ($this->hasField($name))
 		{
-			return $this->_cached_field_values[$name];
+			if (isset($this->_cached_field_values[$name]))
+			{
+				return $this->_cached_field_values[$name];
+			}
+			else
+			{
+				return "";
+			}
 		}
 		else
 		{

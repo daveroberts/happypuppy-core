@@ -16,7 +16,19 @@ class Inflector
 		}
 		if (substr($noun, strlen($noun) - 1, 1) == 'y')
 		{
-			return substr($noun, 0, strlen($noun) - 1).'ies';
+			$next_to_y = substr($noun, strlen($noun) - 2, 1);
+			if (is_equal_ignore_case($next_to_y, 'a') ||
+				is_equal_ignore_case($next_to_y, 'e') ||
+				is_equal_ignore_case($next_to_y, 'i') ||
+				is_equal_ignore_case($next_to_y, 'o') ||
+				is_equal_ignore_case($next_to_y, 'u'))
+			{
+				return $noun.'s';
+			}
+			else
+			{
+				return substr($noun, 0, strlen($noun) - 1).'ies';
+			}
 		}
 		if (substr($noun, strlen($noun) - 1, 1) == 's')
 		{

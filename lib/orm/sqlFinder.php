@@ -55,12 +55,18 @@ class sqlFinder
 	}
 	private function find_all($args, &$debug)
 	{
-		$conditions = $args["conditions"];
-		$count = $args["count"];
-		$order = $args["order"];
-		$limit = $args["limit"];
-		$offset = $args["offset"];
-		$includes = $args["includes"];
+		$conditions = null;
+		if (isset($args["conditions"])){ $conditions = $args["conditions"]; }
+		$count = null;
+		if (isset($args["count"])){ $count = $args["count"]; }
+		$order = null;
+		if (isset($args["order"])){ $order = $args["order"]; }
+		$limit = null;
+		if (isset($args["limit"])){ $limit = $args["limit"]; }
+		$offset = null;
+		if (isset($args["offset"])){ $offset = $args["offset"]; }
+		$includes = null;
+		if (isset($args["includes"])){ $includes = $args["includes"]; }
 		$sql = "SELECT ";
 		if ($count != null && $count){ $sql .= "COUNT(*) ";} else { $sql .= "* "; }
 		$sql .= " FROM ".$this->_dbo->tablename." ";
@@ -70,13 +76,13 @@ class sqlFinder
 		}
 		if ($order != null)
 		{
-			$sql .= " ORDER BY ".$order." ";
+			$sql .= " ORDER BY `".$order."` ";
 		}
 		else
 		{
 			if ($this->_dbo->hasField("order"))
 			{
-				$sql .= " ORDER BY order ";
+				$sql .= " ORDER BY `order` ";
 			}
 		}
 		if ($limit != null)

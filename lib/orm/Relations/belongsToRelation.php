@@ -1,12 +1,12 @@
 <?php
 namespace HappyPuppy;
-class hasOneRelation extends Relation
+class belongsToRelation extends Relation
 {
 	var $foreign_class;
 	var $foreign_table;
 	var $foreign_key;
-	
-	function __construct($model, $name, $foreign_class='', $foreign_table = '',$foreign_key = '')
+
+	function __construct($model, $name, $foreign_class='', $foreign_table = '', $foreign_key = '')
 	{
 		$refl = new \ReflectionClass(get_class($model));
 		if (strcmp($foreign_class, '') == 0) {

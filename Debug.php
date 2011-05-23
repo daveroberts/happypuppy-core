@@ -16,7 +16,8 @@ class Debug // modified from stack overflow
 		$x = 0;
 		foreach($call as $crumb)
 		{
-			if (strcasecmp('HappyPuppy\\', substr($crumb['class'], 0, strlen('HappyPuppy\\'))) != 0)
+			$class = ''; if (isset($crumb['class'])){ $class = $crumb['class']; }
+			if (strcasecmp('HappyPuppy\\', substr($class, 0, strlen('HappyPuppy\\'))) != 0)
 			{
 				$happy_puppy_call = false;
 				break;
@@ -24,7 +25,8 @@ class Debug // modified from stack overflow
 			$x++;
 		}
 		$data = array();
-		$data['line'] = $call[$x]['line'];
+		$data['line'] = "";
+		if (isset($call[$x]['line'])){ $data['line'] = $call[$x]['line']; }
 		if (strcasecmp($data['line'],'') == 0)
 		{
 			$data['line'] = $call[$x-1]['line'];
@@ -34,7 +36,8 @@ class Debug // modified from stack overflow
 		{
 			$data['function'] = $call[$x-1]['function'];
 		}
-		$data['file'] = $call[$x]['file'];
+		$data['file'] = "";
+		if (isset($call[$x]['file'])){ $data['file'] = $call[$x]['file']; }
 		if (strcasecmp($data['file'],'') == 0)
 		{
 			$data['file'] = $call[$x-1]['file'];
@@ -55,7 +58,8 @@ class Debug // modified from stack overflow
 			$data['function'] = "None";
 			$data['line'] = $call[$x-1]['line'];
 		}
-		$data['class'] = $call[$x]['class'];
+		$data['class'] = '';
+		if (isset($call[$x]['class'])){ $data['class'] = $call[$x]['class']; }
 		if (strcasecmp($data['class'],'') == 0)
 		{
 			$data['class'] = $call[$x-1]['class'];

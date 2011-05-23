@@ -40,7 +40,7 @@
 				{
 					$part = substr($part, 1);
 				}
-				if (!is_array($current[$part]))
+				if (!isset($current[$part]))
 				{
 					$current[$part] = array();
 				}

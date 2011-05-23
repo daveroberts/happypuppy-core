@@ -42,7 +42,7 @@ class PhpRender implements iRender
 	}
 	private function getHeadTemplate($controller_name, $action)
 	{
-		$head_template = $_ENV["app"]->root().'views/'.$controller_name.'/'.$action.'.head.php';
+		$head_template = $_ENV["app"]->root().'views/'.strtolower($controller_name).'/'.$action.'.head.php';
 		return $head_template;
 	}
 	private function getLayoutTemplate($controller_obj)
@@ -54,7 +54,7 @@ class PhpRender implements iRender
 		}
 		else
 		{
-			$layout_template = $_ENV["app"]->root().'views/'.$layout_template.'.php';
+			$layout_template = $_ENV["app"]->root().'views/'.strtolower($layout_template).'.php';
 		}
 		return $layout_template;
 	}

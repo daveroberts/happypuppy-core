@@ -16,8 +16,15 @@ class form
 	}
 	public function hiddenID()
 	{
-		if ($this->model->pkval == null){ return ""; }
-		return $this->hidden($this->model->pk, $this->model->pkval);
+		if (isset($this->model->pkval) &&
+			!is_empty($this->model->pkval) &&
+			$this->model->pkval != null)
+		{
+			return $this->hidden($this->model->pk, $this->model->pkval);
+		}
+		{
+			return "";
+		}
 	}
 	public function label($field, $label = '', $html_options = array()){
 		if ($label == ''){ $label = $field; }

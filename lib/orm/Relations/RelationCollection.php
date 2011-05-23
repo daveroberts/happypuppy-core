@@ -119,7 +119,7 @@ abstract class RelationCollection
 		foreach($this->_relations as $relation_name=>$relation)
 		{
 			$out .= $relation_name.': ';
-			$this->getRelationValues($relation_name);
+			$this->getRelationValues($relation_name, $debug);
 			$values = $this->_cached_values[$relation_name];
 			if (is_array($values))
 			{

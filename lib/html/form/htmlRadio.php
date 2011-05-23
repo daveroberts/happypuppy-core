@@ -3,13 +3,11 @@ namespace HappyPuppy;
 class HtmlRadio extends HtmlElement
 {
 	var $val;
-	var $name;
 	function __construct($groupname, $value, $selected = null, $id='', $htmlOptions = array())
 	{
 		parent::__construct("input", true, $htmlOptions);
 		$this->val = $value;
-		$this->name = $name;
-		if ($id == ''){ $id = $name; }
+		if ($id == ''){ $id = $groupname; }
 		$this->id = $id;
 		$this->htmlOptions["name"] = $groupname;
 		$this->htmlOptions["type"] = "radio";

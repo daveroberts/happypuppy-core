@@ -30,7 +30,7 @@
 					$this->debug_app = true;
 				}
 			}
-			return $this->debug_app = true;
+			return $this->debug_app;
 		}
 		public function getDefaultController()
 		{
