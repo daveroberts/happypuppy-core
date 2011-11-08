@@ -52,7 +52,13 @@
 		{
 			$matchingSubtrees = array(&$this->route_tree);
 			$matchingRoutes = array();
-			$urlparts = split('[/]', $url);
+			$tok = strtok($url, "/");
+			$urlparts = array();
+			while ($tok !== false)
+			{
+				$urlparts[] = $tok;
+				$tok = strtok("/");
+			}
 			if ($url == ''){ $urlparts = array('/'); }
 			for($p = 0; $p < count($urlparts); $p++)
 			{
@@ -89,7 +95,15 @@
 				}
 			}
 			$num_routes = count($matchingRoutes);
-			if ($num_routes > 1){ throw new \Exception("Multiple Routes match"); }
+			if ($num_routes > 1)
+			{
+				$error = "Multiple routes match\n";
+				foreach($matchingRoutes as $r)
+				{
+					$error .= "Route: ".$r->GetRouteString();
+				}
+				throw new \Exception($error);
+			}
 			if ($num_routes == 0){ return null; }
 			return $matchingRoutes[0];
 		}

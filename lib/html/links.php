@@ -44,6 +44,11 @@ function link_to_action($text, $action, $html_options = array())
 	return link_to_rawurl($text, rawurl_from_action($action), $html_options );
 }
 
+function link_to_hpurl($text, $hp_url, $html_options = array())
+{
+	return link_to_rawurl($text, rawurl_from_hpurl($hp_url), $html_options);
+}
+
 // links to a URL in the current application
 function link_to_appurl($text, $app_url, $html_options = array())
 {
@@ -70,9 +75,16 @@ function rawurl_from_location($location)
 	}
 }
 
+function rawurl_from_hpurl($hp_url)
+{
+	$raw_url = $_ENV["webroot"];
+	$raw_url .= $hp_url;
+	return $raw_url;
+}
+
 function rawurl_from_appurl($app_url)
 {
-	$raw_url = '';
+	$raw_url = $_ENV["webroot"];
 	if (strcmp($_ENV["config"]["default_app"], $_ENV["app"]->name) != 0)
 	{
 		$raw_url .= '/'.$_ENV["app"]->name;
@@ -92,13 +104,13 @@ function rawurl_from_controller($controller, $action)
 }
 function rawurl_from_app($app, $controller, $action)
 {
-	$url = '/';
+	$url = $_ENV["webroot"];
 	if (strcmp($_ENV["config"]["default_app"], $app) != 0)
 	{
-		$url .= $_ENV["app"]->name.'/';
+		$url .= '/'.$_ENV["app"]->name;
 	}
-	$url .= $controller.'/';
-	$url .= $action;
+	$url .= '/'.$controller;
+	$url .= '/'.$action;
 	return $url;
 }
 

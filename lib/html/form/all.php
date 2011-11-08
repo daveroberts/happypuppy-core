@@ -13,4 +13,5 @@ require_once("htmlRadio.php");
 require_once("htmlSelect.php");
 require_once("htmlSubmit.php");
 require_once("htmlTextbox.php");
+require_once("htmlTextarea.php");
 ?>

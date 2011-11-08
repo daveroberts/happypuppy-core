@@ -41,7 +41,7 @@ abstract class RelationCollection
 	public function getRelationValues($relation_name, &$debug){
 		if (!array_key_exists($relation_name, $this->_cached_values))
 		{
-			$this->buildRelation($relation_name, &$debug);
+			$this->buildRelation($relation_name, $debug);
 		}
 		return $this->_cached_values[$relation_name];
 	}

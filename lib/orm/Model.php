@@ -41,7 +41,7 @@ abstract class Model
 	
 	// Field Related
 	public function isUniqueField($field_name, $scope_by = array(), &$error_msg = ''){
-		$this->_fields->addUniqueField($field_name, $scope_by, &$error_msg);
+		$this->_fields->addUniqueField($field_name, $scope_by, $error_msg);
 	}
 	public function setDescription($value){
 		$this->_description = $value;
@@ -186,12 +186,6 @@ abstract class Model
 		$pk_id = $arr[$this->pk];
 		IdentityMap::set($this->tablename,$pk_id,$this);
 	}
-	public static function BuildFromPost($arr){
-		$klass = get_called_class();
-		$obj = new $klass();
-		$obj->build($arr);
-		return $obj;
-	}
 	public function build($arr){
 		if ($arr == null) { throw new \Exception("Array passed to build is null"); }
 		$this->_fields->buildFromForm($arr);
@@ -230,16 +224,20 @@ abstract class Model
 	{
 		$classname = get_called_class();
 		$args = func_get_args();
-		$debug = null;
-		array_unshift($args, &$debug);
 		return forward_static_call_array(array($classname, 'PWhere'), $args);
 	}
-	private static function PWhere(&$debug, $conditions, $params)
+	// removed debug pass by reference
+	// forward_static_call_array was not allowing pass by reference
+	private static function PWhere($conditions, $params)
 	{
 		$classname = get_called_class();
 		$num_args = func_num_args();
 		$args = array();
-		if ($num_args == 3){
+		if ($num_args == 2)
+		{
+			$args[] = $params;
+		}
+		else if ($num_args == 3){
 			if (is_string($params) || is_int($params)){
 				$args[] = $params;
 			} else if (is_array($params)){
@@ -320,9 +318,9 @@ abstract class Model
 	public function destroy($destroy_dependents = false, &$debug = array(), $stop_before_alter = false){
 		// deletes a record and all of its has_many orphans
 		$result = $this->_relations->destroy($destroy_dependents, $debug, $stop_before_alter);
-		if (!result && $debug == false){ return false; }
+		if (!$result && $debug == false){ return false; }
 		$result = $this->_fields->destroy($debug, $stop_before_alter);
-		if (!result){ return false; }
+		if (!$result){ return false; }
 		return true;
 	}
 	public function prettyPrint(){

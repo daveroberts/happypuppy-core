@@ -69,7 +69,12 @@ class DBColumn
 	}
 	public static function OptionsToSQL($name, $options)
 	{
-		list($type, $nullable, $defaultval) = split(";", $options);
+		$nullable = false;
+		$defaultval = null;
+		$arr = preg_split('/;/', $options);
+		$type = $arr[0];
+		if (isset($arr[1])){ $nullable = $arr[1]; }
+		if (isset($arr[2])){ $defaultval = $arr[2]; }
 		$dbcol = new DBColumn($name, $type, $nullable, $defaultval);
 		return $dbcol->toString();
 	}

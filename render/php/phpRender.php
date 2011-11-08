@@ -6,7 +6,7 @@ class PhpRender implements iRender
 	{
 		if ($action == null || $action == ''){ $action = 'index'; }
 		$view_template = $this->getViewTemplate($controller_obj, $controller_name, $action);
-		if (!file_exists($view_template) AND !__DEBUG__){ not_found(); }
+		if (!file_exists($view_template) AND $_ENV["config"]["env"] != \HappyPuppy\Environment::DEV){ not_found(); }
 		if ($controller_obj->layout)
 		{
 			$content = $this->file_with_obj($view_template, $controller_obj);
