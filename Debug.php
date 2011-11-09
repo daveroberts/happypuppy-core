@@ -6,6 +6,7 @@ class Debug // modified from stack overflow
 
 	public static function sql($sql, $time)
 	{
+		logsql($sql);
 		if(!is_array(self::$sqls))
 		{
 			self::$sqls = array();

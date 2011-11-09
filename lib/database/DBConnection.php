@@ -20,13 +20,13 @@ class DBConnection
 	}
 	public static function GetDBName($app)
 	{
-		if (file_exists($_ENV["docroot"]."config/dbconf.php"))
+		if (file_exists($_ENV["docroot"]."apps/".$app."/db/conf.php"))
 		{
-			require_once($_ENV["docroot"]."config/dbconf.php");
-			$method_name = $app."DB";
-			if (method_exists("\HappyPuppy\DBConf", $method_name))
+			$klass = "\\".$app."\DBConf";
+			require_once($_ENV["docroot"]."apps/".$app."/db/conf.php");
+			if (method_exists($klass, "DB"))
 			{
-				$dbsettings = DBConf::$method_name();
+				$dbsettings = $klass::DB();
 				return $dbsettings["dbname"];
 			}
 		}
@@ -34,13 +34,13 @@ class DBConnection
 	}
 	public static function GetDB($app)
 	{
-		if (file_exists($_ENV["docroot"]."config/dbconf.php"))
+		if (file_exists($_ENV["docroot"]."apps/".$app."/db/conf.php"))
 		{
-			require_once($_ENV["docroot"]."config/dbconf.php");
-			$method_name = $app."DB";
-			if (method_exists("\HappyPuppy\DBConf", $method_name))
+			$klass = "\\".$app."\DBConf";
+			require_once($_ENV["docroot"]."apps/".$app."/db/conf.php");
+			if (method_exists($klass, "DB"))
 			{
-				$dbsettings = DBConf::$method_name();
+				$dbsettings = $klass::DB();
 				$pdo = new \PDO("mysql:host=".$dbsettings["hostname"].";dbname=".$dbsettings["dbname"]."", $dbsettings["dbusername"], $dbsettings["dbpassword"]);
 				if ($pdo == null){ throw new \Exception("Cannot connect to database as root"); }
 				return $pdo;

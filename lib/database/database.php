@@ -24,7 +24,10 @@ class DB
 		$stmt->execute();
 		$time_end = microtime(true);
 		$time = $time_end - $time_start;
-		Debug::sql($sql, $time);
+		if ($_ENV["config"]["env"] == Environment::DEV)
+		{
+			Debug::sql($sql, $time);
+		}
 		$arr = array();
 		while($row = $stmt->fetch(\PDO::FETCH_ASSOC))
 		{
@@ -50,7 +53,10 @@ class DB
 		$result = $db->exec($sql);
 		$time_end = microtime(true);
 		$time = $time_end - $time_start;
-		Debug::sql($sql, $time);
+		if ($_ENV["config"]["env"] == Environment::DEV)
+		{
+			Debug::sql($sql, $time);
+		}
 		return $result; // $db->exec incorrectly returns 0 when 1 row is affected
 	}
 	static function lastInsertId()
