@@ -16,8 +16,8 @@ class form
 	}
 	public function hiddenID()
 	{
-		if (isset($this->model->pkval) &&
-			!is_empty($this->model->pkval) &&
+		// isset has a bug.  When pkval had a string of "1", isset would return false
+		if (!is_empty($this->model->pkval) &&
 			$this->model->pkval != null)
 		{
 			return $this->hidden($this->model->pk, $this->model->pkval);
@@ -97,9 +97,14 @@ class form
 			$cb = new HtmlCheckbox($this->inputFieldDefaultID($name), 1, $this->model->$name);
 			return $hid->toString().$cb->toString();
 		}
+		else if (substr($type, 0, 7) == "text")
+		{
+			$t = new HtmlTextarea($this->inputFieldDefaultID($name), $this->model->$name, '', $htmlOptions);
+			return $t->toString();
+		}
 		else
 		{
-			throw new \Exception("$type isn't supported");
+			throw new \Exception("$type isn't a supported DB type");
 		}
 		return $type;
 	}

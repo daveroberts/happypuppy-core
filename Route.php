@@ -47,7 +47,13 @@
 		}
 		public static function GetRespondsTo($url)
 		{
-			$parts = split('[/]', $url);
+			$tok = strtok($url, "/");
+			$parts = array();
+			while ($tok !== false)
+			{
+				$parts[] = $tok;
+				$tok = strtok("/");
+			}
 			$lastpart = end($parts);
 			$dot = strpos($lastpart, ".");
 			if (!$dot){ return '';}

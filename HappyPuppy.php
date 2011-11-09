@@ -9,10 +9,10 @@ require_once("Debug.php");
 
 function run()
 {
-	HappyPuppy::getInstance()->init();
+	HappyPuppy::GetInstance()->init();
 	try
 	{
-		HappyPuppy::getInstance()->dispatch();
+		HappyPuppy::GetInstance()->dispatch();
 	}
 	catch (\Exception $e)
 	{
@@ -122,7 +122,7 @@ class HappyPuppy
 	}
 
 	/* Singleton */
-	public function getInstance()
+	public static function GetInstance()
 	{
 		if(self::$instance == NULL)
 		{

@@ -91,7 +91,7 @@ class Controller
 		if ($this->default_action != null){ return $this->default_action; }
 		$rc = new \ReflectionClass($this);
 		$docstring = $rc->getDocComment();
-		$this->default_action = '';
+		$this->default_action = 'index';
 		foreach(Annotation::parseDocstring($docstring) as $annotation=>$vals)
 		{
 			if (is_equal_ignore_case($annotation, 'DefaultAction'))

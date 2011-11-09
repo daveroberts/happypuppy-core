@@ -13,7 +13,7 @@ class Fields
 		$this->_model = $model;
 	}
 	public function addUniqueField($field_name, $scope_by = array(), &$error_msg = ''){
-		$this->_unique_fields[] = new UniqueFieldValidator($field_name, $scope_by, &$error_msg);
+		$this->_unique_fields[] = new UniqueFieldValidator($field_name, $scope_by, $error_msg);
 	}
 	public function getPK(){
 		if (!isset($this->_pk))
@@ -154,7 +154,7 @@ class Fields
 	}
 	private function beforeUpdate(){
 		if (method_exists($this, "before_update")){
-			$before_update_result = $this->before_update(&$error_msg);
+			$before_update_result = $this->before_update($error_msg);
 			if (!$before_update_result){ return false; }
 		}
 		foreach($this->_unique_fields as $uniqueFieldValidator){
