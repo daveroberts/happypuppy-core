@@ -186,12 +186,6 @@ abstract class Model
 		$pk_id = $arr[$this->pk];
 		IdentityMap::set($this->tablename,$pk_id,$this);
 	}
-	public static function BuildFromPost($arr){
-		$klass = get_called_class();
-		$obj = new $klass();
-		$obj->build($arr);
-		return $obj;
-	}
 	public function build($arr){
 		if ($arr == null) { throw new \Exception("Array passed to build is null"); }
 		$this->_fields->buildFromForm($arr);
@@ -324,9 +318,9 @@ abstract class Model
 	public function destroy($destroy_dependents = false, &$debug = array(), $stop_before_alter = false){
 		// deletes a record and all of its has_many orphans
 		$result = $this->_relations->destroy($destroy_dependents, $debug, $stop_before_alter);
-		if (!result && $debug == false){ return false; }
+		if (!$result && $debug == false){ return false; }
 		$result = $this->_fields->destroy($debug, $stop_before_alter);
-		if (!result){ return false; }
+		if (!$result){ return false; }
 		return true;
 	}
 	public function prettyPrint(){

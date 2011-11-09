@@ -38,6 +38,7 @@ class HappyPuppy
 		if (isset($_GET['url']))
 			$this->url =trim( $_GET['url'], '/');
 		else $this->url = '';
+		$_ENV["webroot"] = substr($_SERVER["SCRIPT_NAME"], 0, strlen($_SERVER["SCRIPT_NAME"]) - 10);
 	}
 	
 	function init()
@@ -72,10 +73,10 @@ class HappyPuppy
 		}
 		else
 		{
-			$this->dispath_404($url);
+			$this->dispatch_404($url);
 		}
 	}
-	public function dispath_404($url)
+	public function dispatch_404($url)
 	{
 		if ($_ENV['config']['env'] == Environment::DEV)
 		{
