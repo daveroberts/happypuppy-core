@@ -25,6 +25,7 @@ class DBMigrationExec
 	}
 	private static function CreateVersionTableIfNotExists($dbname)
 	{
+		$results = DB::RootQuery("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '".$dbname."'");
 		$results = DB::RootQuery("select * from ".$dbname.".dbversion");
 		if (count($results) == 0)
 		{

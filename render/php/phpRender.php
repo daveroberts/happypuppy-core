@@ -32,7 +32,7 @@ class PhpRender implements iRender
 		$view_template = $controller_obj->view_template;
 		if ($view_template == '')
 		{
-			$view_template = $_ENV["app"]->root().'views/'.strtolower($controller_name).'/'.$action.'.php';
+			$view_template = $_ENV["app"]->root().'views/'.strtolower($controller_name).'/'.strtolower($action).'.php';
 		}
 		else
 		{

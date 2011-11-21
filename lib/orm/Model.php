@@ -95,6 +95,7 @@ abstract class Model
 				} else {
 					$this->_tablename = $classname;
 				}
+				$this->_tablename = strtolower($this->_tablename);
 			}
 			return $this->_tablename;
 		}

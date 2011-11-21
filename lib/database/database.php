@@ -18,7 +18,6 @@ class DB
 		global $db; return DB::wQuery($db, $sql);
 	}
 	private static function wQuery($db, $sql) {
-		if ($db == null){ throw new \Exception("Could not connect to database"); }
 		$stmt = $db->prepare($sql);
 		$time_start = microtime(true);
 		$stmt->execute();
@@ -37,7 +36,6 @@ class DB
 	}
 	static function RootExec($sql){
 		$rootdb = DBConnection::GetRootDB();
-		if ($rootdb == null){ throw new \Exception("Could not connect to root database"); }
 		return DB::wExec($rootdb, $sql);
 	}
 	static function appExec($app, $sql){
@@ -48,7 +46,6 @@ class DB
 		global $db; return DB::wExec($db, $sql);
 	}
 	private static function wExec($db, $sql){
-		if ($db == null){ throw new \Exception("Could not connect to database"); }
 		$time_start = microtime(true);
 		$result = $db->exec($sql);
 		$time_end = microtime(true);
