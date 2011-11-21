@@ -94,7 +94,6 @@ class sqlFinder
 			$sql .= " OFFSET ".$offset." ";
 		}
 		$debug[] = $sql;
-		logsql($sql);
 		$db_results = DB::query($sql);
 		if ($count)
 		{
