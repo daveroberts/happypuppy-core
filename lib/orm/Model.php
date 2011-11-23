@@ -24,9 +24,9 @@ abstract class Model
 	private $_fields; // cache of values for fields
 	private $_relations;
 	private $_sqlFinder;
-	
+
 	public static $all_rows_loaded;
-	
+
 	function __construct($tablename = '')
 	{
 		if ($tablename != ''){ $this->setTablename($tablename); }
@@ -38,7 +38,7 @@ abstract class Model
 			self::$all_rows_loaded = array();
 		}
 	}
-	
+
 	// Field Related
 	public function isUniqueField($field_name, $scope_by = array(), &$error_msg = ''){
 		$this->_fields->addUniqueField($field_name, $scope_by, $error_msg);
@@ -54,7 +54,7 @@ abstract class Model
 	}
 
 	// Relation Related
-	
+
 	// Add Relations
 	protected function has_many($relation_name, $sort_by='', $foreign_class = '', $foreign_table = '', $foreign_key = ''){
 		$this->_relations->addHasMany($relation_name, $sort_by, $foreign_class, $foreign_table, $foreign_key);
@@ -83,7 +83,7 @@ abstract class Model
 	public function addIntoRelation($relation_name, $key, $value, $fromDB = false){
 		return $this->_relations->addIntoRelation($relation_name, $key, $value, $fromDB);
 	}
-	
+
 	public function __get($name){
 		if ($name == "tablename")
 		{
@@ -175,7 +175,7 @@ abstract class Model
 		}
 		if (substr($name, 0, 5) == "GetBy")
 		{
-			
+
 			$name = substr($name, 5);
 			if (count($args) == 1){ $args[1] = false; }
 			return self::GetBy($name, $args[0], $args[1]);
@@ -221,7 +221,7 @@ abstract class Model
 		$classname = get_called_class();
 		return forward_static_call_array(array($classname, 'PWhere'), func_get_args());
 	}
-	public static function Where($conditions, $params = null)
+	public static function Where($conditions)
 	{
 		$classname = get_called_class();
 		$args = func_get_args();
@@ -229,34 +229,18 @@ abstract class Model
 	}
 	// removed debug pass by reference
 	// forward_static_call_array was not allowing pass by reference
-	private static function PWhere($conditions, $params)
+	private static function PWhere($conditions)
 	{
 		$classname = get_called_class();
-		$num_args = func_num_args();
-		$args = array();
-		if ($num_args == 2)
+		$args = func_get_args();
+		array_shift($args); // chop off conditions
+		foreach($args as $arg)
 		{
-			$args[] = $params;
-		}
-		else if ($num_args == 3){
-			if (is_string($params) || is_int($params)){
-				$args[] = $params;
-			} else if (is_array($params)){
-				$args = $params;
-			} else {
-				throw new \Exception("Argument passed to Where must be either a string or an array");
-			}
-		} else if ($num_args > 2) {
-			$args = func_get_args();
-			array_shift($args); // chop off debug
-			array_shift($args); // chop off conditions
-		}
-		foreach($args as $arg){
-			$conditions = Model::replaceNextArg($conditions, $arg);
+			$conditions = Model::ReplaceNextArg($conditions, $arg);
 		}
 		return $classname::Find(array("conditions"=>$conditions), $debug);
 	}
-	private static function replaceNextArg($conditions, $var){
+	private static function ReplaceNextArg($conditions, $var){
 		$pos = strpos($conditions, '?');
 		$conditions = substr($conditions,0,$pos).addslashes($var).substr($conditions,$pos + 1);
 		return $conditions;
@@ -331,7 +315,7 @@ abstract class Model
 		$out .= "---\n";
 		return $out;
 	}
-	
+
 	public static function Get($pk_id, &$debug = array()){
 		$classname = get_called_class();
 		$model = new $classname();
@@ -363,12 +347,12 @@ abstract class Model
 	public static function All($sort_by = '', &$debug = array()){
 		$classname = get_called_class();
 		$model = new $classname();
-		
+
 		if (self::$all_rows_loaded[$model->tablename] && $debug == false)
 		{
 			return IdentityMap::GetAll($model->tablename);
 		}
-		
+
 		$sql = "SELECT * FROM ".$model->tablename.' ';
 		if ($sort_by != ""){
 			$sql .= " ORDER BY `".$sort_by."` ";
@@ -395,7 +379,7 @@ abstract class Model
 	{
 		$doc = new \DOMDocument('1.0');
 		$doc->formatOutput = true;
-		
+
 		if ($name == '')
 		{
 			$classname = get_called_class();
@@ -406,7 +390,7 @@ abstract class Model
 
 		$root = $doc->createElement($name);
 		$root = $doc->appendChild($root);
-		
+
 		foreach($collection as $model)
 		{
 			$refl = new \ReflectionClass(get_class($model));

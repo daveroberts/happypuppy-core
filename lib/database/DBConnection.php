@@ -8,7 +8,9 @@ class DBConnection
 		$dbconf_file = $_ENV["docroot"]."config/dbconf.php";
 		if (!file_exists($dbconf_file))
 		{
-			throw new \Exception("No file: ".$dbconf_file);
+			$err = "Database configuration file not found: ".$dbconf_file."\n";
+			$err .= "Copy from the sample file, config/dbconf.php.sample";
+			throw new \Exception($err);
 		}
 		require_once($_ENV["docroot"]."config/dbconf.php");
 		$method_name = "RootDB";

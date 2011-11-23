@@ -8,7 +8,8 @@ class DBMigrationExec
 		$dbname = DBConnection::GetDBName($app);
 		if ($set_to_version == null)
 		{
-			DBMigrationExec::CreateVersionTableIfNotExists($dbname);
+			$result = DBMigrationExec::CreateVersionTableIfNotExists($dbname);
+			if (!$result){ return 0; }
 			$results = DB::RootQuery("select * from ".$dbname.".dbversion");
 			$row = reset($results);
 			if ($row == null){ return 0; }
@@ -17,7 +18,8 @@ class DBMigrationExec
 		}
 		else
 		{
-			DBMigrationExec::CreateVersionTableIfNotExists($dbname);
+			$result = DBMigrationExec::CreateVersionTableIfNotExists($dbname);
+			if (!$result){ return 0; }
 			$sql = "UPDATE ".$dbname.".`dbversion` SET version=".$set_to_version;
 			DB::RootExec($sql);
 			return $set_to_version;
@@ -25,7 +27,8 @@ class DBMigrationExec
 	}
 	private static function CreateVersionTableIfNotExists($dbname)
 	{
-		$results = DB::RootQuery("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '".$dbname."'");
+		$db_exists = DBMigrationExec::DatabaseExists($dbname);
+		if (!$db_exists){ return false; }
 		$results = DB::RootQuery("select * from ".$dbname.".dbversion");
 		if (count($results) == 0)
 		{
@@ -34,6 +37,12 @@ class DBMigrationExec
 			$sql = "INSERT INTO ".$dbname.".`dbversion` (`version`)VALUES ('0');";
 			DB::RootExec($sql);
 		}
+		return true;
+	}
+	private static function DatabaseExists($dbname)
+	{
+		$results = DB::RootQuery("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '".$dbname."'");
+		return (count($results) != 0);
 	}
 	static function HighestVersionAvailable($app)
 	{

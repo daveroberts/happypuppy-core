@@ -11,7 +11,7 @@ class Debug // modified from stack overflow
 		{
 			self::$sqls = array();
 		}
-		
+
 		$call = debug_backtrace(false);
 		$happy_puppy_call = true;
 		$x = 0;
@@ -69,7 +69,7 @@ class Debug // modified from stack overflow
 		$data['time'] = $time;
 		array_push(self::$sqls, $data);
 	}
-	
+
 	public static function getSQL()
 	{
 		$out = '';

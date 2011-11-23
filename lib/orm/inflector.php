@@ -48,15 +48,15 @@ class Inflector
 		{
 			return $key;
 		}
-		if (substr($noun, strlen($nount) - 3, 3) == 'ies')
+		if (substr($noun, strlen($noun) - 3, 3) == 'ies')
 		{
 			return substr($noun, 0, strlen($noun) - 3).'y';
 		}
-		if (substr($noun, strlen($nount) - 3, 3) == 'zes')
+		if (substr($noun, strlen($noun) - 3, 3) == 'zes')
 		{
 			return substr($noun, 0, strlen($noun) - 3).'z';
 		}
-		if (substr($noun, strlen($nount) - 3, 3) == 'ses')
+		if (substr($noun, strlen($noun) - 3, 3) == 'ses')
 		{
 			return substr($noun, 0, strlen($noun) - 3).'s';
 		}

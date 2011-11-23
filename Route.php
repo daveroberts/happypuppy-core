@@ -7,13 +7,13 @@
 		var $omit_app = false;
 		var $omit_controller = false;
 		var $omit_action = false;
-		
+
 		var $app;
 		var $controller;
 		var $action;
 		var $params;
 		var $responds_to = 'GET';
-		
+
 		var $before = array();
 		function __construct($app, $controller, $action, $params = array(), $responds_to = 'GET')
 		{

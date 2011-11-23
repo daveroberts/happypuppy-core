@@ -37,7 +37,7 @@
 			}
 			$out = ob_get_contents();
 			ob_end_clean();
-			
+
 			$render_engine_instance = null;
 			if ($_ENV["controller"]->processView())
 			{
@@ -50,7 +50,7 @@
 				$render_engine_instance = new $render_engine_classname();
 				$out = $render_engine_instance->process($_ENV["controller"], $route->controller, $route->action);
 			}
-			
+
 			if (isset($_GET["__hpinfo"]))
 			{
 				Router::showDebugInfo($route, $url, $render_engine_instance);
@@ -120,5 +120,5 @@
 			require('/apps/hptools/views/Service/debuginfo.php');
 		}
 	}
-	
+
 ?>
