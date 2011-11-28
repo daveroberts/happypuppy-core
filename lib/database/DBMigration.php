@@ -3,27 +3,7 @@
 namespace HappyPuppy;
 class DBMigration
 {
-	public static function CreateUserAndDB($username, $password, $dbname)
-	{
-		$sql = "
-			CREATE USER '".$username."'@'%' IDENTIFIED BY '".$password."';
-			GRANT USAGE ON * . * TO '".$username."'@'%' IDENTIFIED BY '".$password."' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0 ;
-			CREATE DATABASE IF NOT EXISTS `".$dbname."` ;
-			GRANT ALL PRIVILEGES ON `".$dbname."` . * TO '".$username."'@'%';
-		";
-		DB::RootExec($sql);
-        DB::RootExec("FLUSH PRIVILEGES;");
-	}
-	public static function DropUserAndDB($username, $dbname)
-	{
-		$sql = "
-			DROP USER '".$username."'@'%';
-			DROP DATABASE IF EXISTS `".$dbname."` ;
-		";
-		print($sql);
-		DB::RootExec($sql);
-	}
-	public static function CreateTable($app, $tablename, $columns)
+	public static function CreateTable($dbname, $tablename, $columns)
 	{
 		$sql = "
 			CREATE TABLE `".$tablename."` (
@@ -33,24 +13,25 @@ class DBMigration
 			$sql .= " , ";
 		}
 		$sql = substr($sql, 0, strlen($sql) - 2);
-		$sql .= ") ENGINE = MYISAM ;";
-		DB::AppExec($app, $sql);
+		$sql .= ") ENGINE = innodb ;";
+		$result = DB::AppExec($dbname, $sql);
+		return $result;
 	}
-	public static function DropTable($app, $tablename)
+	public static function DropTable($dbname, $tablename)
 	{
 		$sql = "DROP TABLE `".$tablename."` ";
 		print($sql);
-		DB::AppExec($app, $sql);
+		DB::AppExec($dbname, $sql);
 	}
-	public static function AddColumn($app, $tablename, $colname, $options)
+	public static function AddColumn($dbname, $tablename, $colname, $options)
 	{
 		$sql = "ALTER TABLE `".$tablename."` ADD ".DBColumn::OptionsToSQL($colname, $options);
-		DB::AppExec($app, $sql);
+		DB::AppExec($dbname, $sql);
 	}
-	public static function DropColumn($app, $tablename, $colname)
+	public static function DropColumn($dbname, $tablename, $colname)
 	{
 		$sql = "ALTER TABLE `".$tablename."` DROP `".$colname."`";
-		DB::AppExec($app, $sql);
+		DB::AppExec($dbname, $sql);
 	}
 }
 

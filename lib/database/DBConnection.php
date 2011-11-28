@@ -36,8 +36,13 @@ class DBConnection
 		}
 		return null;
 	}
+	public static $DBs = array();
 	public static function GetDB($app)
 	{
+		if(isset(DBConnection::$DBs[$app]))
+		{
+			return DBConnection::$DBs[$app];
+		}
 		if (file_exists($_ENV["docroot"]."apps/".$app."/db/conf.php"))
 		{
 			$klass = "\\".$app."\DBConf";
@@ -46,6 +51,7 @@ class DBConnection
 			{
 				$dbsettings = $klass::DB();
 				$pdo = new \PDO("mysql:host=".$dbsettings["hostname"].";dbname=".$dbsettings["dbname"]."", $dbsettings["dbusername"], $dbsettings["dbpassword"]);
+				DBConnection::$DBs[$app] = $pdo;
 				return $pdo;
 			}
 		}

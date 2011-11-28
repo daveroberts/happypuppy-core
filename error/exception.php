@@ -111,7 +111,7 @@
 						in Class: <span style="color: #222299;"><?php echo $line['class'] ?></span>
 					<?php endif; ?>
 				</div>
-				<div id="<?php echo 'trace_'.$trace_num ?>" style="display: none;">
+				<div id="<?php echo 'trace_'.$trace_num ?>" style="display: none; margin-left: 3em; border-left: 1px solid black; padding-left: 1em;">
 					<?php if (isset($line['file'])): ?>
 						<div>
 							File: <span style="color: #777777;"><?php echo $line['file'] ?></span>

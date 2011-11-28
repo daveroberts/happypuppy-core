@@ -3,40 +3,54 @@
 namespace HappyPuppy;
 class DBMigrationExec
 {
-	static function Version($app, $set_to_version = null)
+	static function GetVersion($dbname)
 	{
-		$dbname = DBConnection::GetDBName($app);
-		if ($set_to_version == null)
-		{
-			$result = DBMigrationExec::CreateVersionTableIfNotExists($dbname);
-			if (!$result){ return 0; }
-			$results = DB::RootQuery("select * from ".$dbname.".dbversion");
-			$row = reset($results);
-			if ($row == null){ return 0; }
-			$version = reset($row);
-			return $version;
-		}
-		else
-		{
-			$result = DBMigrationExec::CreateVersionTableIfNotExists($dbname);
-			if (!$result){ return 0; }
-			$sql = "UPDATE ".$dbname.".`dbversion` SET version=".$set_to_version;
-			DB::RootExec($sql);
-			return $set_to_version;
-		}
+		$db_exists = DBMigrationExec::DatabaseExists($dbname);
+		if (!$db_exists){ return 0; }
+		$results = DB::RootQuery("select * from ".$dbname.".dbversion");
+		$row = reset($results);
+		if ($row == null){ return 0; }
+		$version = reset($row);
+		return $version;
 	}
-	private static function CreateVersionTableIfNotExists($dbname)
+	static function SetVersion($dbname, $set_to_version)
 	{
 		$db_exists = DBMigrationExec::DatabaseExists($dbname);
 		if (!$db_exists){ return false; }
-		$results = DB::RootQuery("select * from ".$dbname.".dbversion");
-		if (count($results) == 0)
-		{
-			$sql = "CREATE TABLE ".$dbname.".`dbversion` (`version` INT NOT NULL) ENGINE = MYISAM ;";
-			DB::RootExec($sql);
-			$sql = "INSERT INTO ".$dbname.".`dbversion` (`version`)VALUES ('0');";
-			DB::RootExec($sql);
-		}
+		$sql = "UPDATE ".$dbname.".`dbversion` SET version=".$set_to_version;
+		DB::RootExec($sql);
+		return $set_to_version;
+	}
+	private static function CreateDB($dbname)
+	{
+		require_once($_ENV["docroot"]."apps/".$dbname."/db/migrations.php");
+		$class_name = "\\".$dbname."\\Migrations";
+		$method_name = "CreateUserAndDB";
+		$arr = $class_name::$method_name();
+		$sql = "
+			CREATE USER '".$arr['username']."'@'%' IDENTIFIED BY '".$arr['password']."';
+			GRANT USAGE ON * . * TO '".$arr['username']."'@'%' IDENTIFIED BY '".$arr['password']."' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0 ;
+			CREATE DATABASE `".$arr['dbname']."` ;
+			GRANT ALL PRIVILEGES ON `".$arr['dbname']."` . * TO '".$arr['username']."'@'%';
+		";
+		var_dump($sql); exit();
+		DB::RootExec($sql);
+		DB::RootExec("CREATE TABLE ".$dbname.".`dbversion` (`version` INT NOT NULL) ENGINE = innodb ;");
+		DB::RootExec("INSERT INTO ".$dbname.".`dbversion` (`version`)VALUES ('1');");
+        DB::RootExec("FLUSH PRIVILEGES;");
+		return true;
+	}
+	private static function DropUserAndDB($dbname)
+	{
+		require_once($_ENV["docroot"]."apps/".$app."/db/migrations.php");
+		$class_name = "\\".$app."\\Migrations";
+		$method_name = "CreateUserAndDB";
+		$arr = $class_name::$method_name();
+		$sql = "
+			DROP USER '".$arr['username']."'@'%';
+			DROP DATABASE IF EXISTS `".$arr['dbname']."` ;
+		";
+		DB::RootExec($sql);
 		return true;
 	}
 	private static function DatabaseExists($dbname)
@@ -50,7 +64,7 @@ class DBMigrationExec
 		if (!file_exists($filename)) { return 0; }
 		require_once($filename);
 		$class_name = "\\".$app."\\Migrations";
-		$cur = 0;
+		$cur = 1;
 		$done = false;
 		while (!$done)
 		{
@@ -64,15 +78,26 @@ class DBMigrationExec
 		}
 		return $cur;
 	}
-	static function MigrateDB($app, $target_version, $message = '')
+	static function MigrateDB($app, $target_version, &$message = '')
 	{
 		$num_migrations_performed = 0;
 		$num_dev_data_loaded = 0;
-		$db_version = DBMigrationExec::Version($app);
+		$dbname = DBConnection::GetDBName($app);
+		$db_version = DBMigrationExec::GetVersion($dbname);
 		if ($db_version == $target_version)
 		{
 			// nothing to do
 			$message = "DB version is already $db_version";
+			return true;
+		}
+		if ($db_version == 0)
+		{
+			DBMigrationExec::CreateDB($dbname);
+			$db_version = DBMigrationExec::GetVersion($dbname);
+		}
+		if ($target_version == 0)
+		{
+			DBMigrationExec::DropUserAndDB($dbname);
 			return true;
 		}
 		require_once($_ENV["docroot"]."apps/".$app."/db/migrations.php");
@@ -94,7 +119,20 @@ class DBMigrationExec
 			{
 				throw new \Exception("You must have a method named $method_name in $class_name if you want to migrate your database from version $db_version to $target_version");
 			}
-			$result = $class_name::$method_name();
+			try
+			{
+				DB::BeginTransaction($dbname);
+				$result = $class_name::$method_name();
+				DB::Commit($dbname);
+			}
+			catch(\Exception $e)
+			{
+				DB::Rollback($dbname);
+				$message = "Unabled to complete database migration\n";
+				$message .= "Stopped at version ".$db_version."\n";
+				$message .= $e->getMessage();
+				return false;
+			}
 			$num_migrations_performed++;
 			// import dev data if applicable
 			if ($has_dev_data && $_ENV['config']['env'] == Environment::DEV)
@@ -107,7 +145,7 @@ class DBMigrationExec
 					$num_dev_data_loaded++;
 				}
 			}
-			$db_version = DBMigrationExec::Version($app, $next_version);
+			$db_version = DBMigrationExec::SetVersion($dbname, $next_version);
 		}
 		$message = "Performed $num_migrations_performed migration(s) with $num_dev_data_loaded set(s) of dev data";
 		return true;

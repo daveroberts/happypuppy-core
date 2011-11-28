@@ -16,6 +16,11 @@ function js_delete_confirm($confirm_text, $delete_id, $html_options = array())
 		" f.action = this.href;f.submit(); };return false;";
 	return $confirm_js;
 }
+function css($css_file)
+{
+	$link = "<link rel='stylesheet' href='".rawurl_from_location("/css/".$css_file.".css")."' />";
+	return $link;
+}
 function img($src, $alt = '')
 {
 	$alttag = '';

@@ -16,6 +16,7 @@
 			// include view helpers and models
 			$this->include_dir('views/helpers/*.php');
 			$this->include_dir('models/*.php');
+			// load application plugins
 		}
 		public function isDebugApp()
 		{

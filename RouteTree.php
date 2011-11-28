@@ -10,7 +10,12 @@
 		}
 		function GetRoutes()
 		{
-			$apps = $_ENV["config"]["apps"];
+			$apps = array();
+			$handle = opendir($_ENV['docroot'].'/apps/');
+			while (false !== ($file = readdir($handle))) {
+				if (strcmp(substr($file, 0, 1), '.') == 0){ continue; }
+				$apps[] = $file;
+			}
 			foreach($apps as $app)
 			{
 				$filepath = $_ENV['docroot'].'apps/'.$app.'/Application.php';

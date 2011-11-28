@@ -6,15 +6,43 @@ require("DBConnection.php");
 require("DBMigrationExec.php");
 class DB
 {
+	private static function GetAppOrGlobalDB($app)
+	{
+		$dbh = null;
+		if ($app != null)
+		{
+			$dbh = DBConnection::GetDB($app);
+		}
+		else
+		{
+			global $db;
+			$dbh = $db;
+		}
+		if ($dbh == null){ throw new \Exception("Couldn't get DB: ".$app); }
+		return $dbh;
+	}
+	public static function BeginTransaction($app = null){
+		$dbh = DB::GetAppOrGlobalDB($app);
+		$dbh->setAttribute(\PDO::ATTR_AUTOCOMMIT,FALSE);
+		return $dbh->beginTransaction();
+	}
+	public static function Commit($app = null){
+		$dbh = DB::GetAppOrGlobalDB($app);
+		$value = $dbh->commit();
+		$dbh->setAttribute(\PDO::ATTR_AUTOCOMMIT,TRUE);
+		return $value;
+	}
+	public static function Rollback($app = null){
+		$dbh = DB::GetAppOrGlobalDB($app);
+		$value = $dbh->rollBack();
+		$dbh->setAttribute(\PDO::ATTR_AUTOCOMMIT,TRUE);
+		return $value;
+	}
 	static function RootQuery($sql){
 		$rootdb = DBConnection::GetRootDB();
 		return DB::wQuery($rootdb, $sql);
 	}
-	static function AppQuery($app, $sql){
-		$appdb = DBConnection::GetDB($app);
-		return DB::wQuery($appdb, $sql);
-	}
-	static function query($sql){
+	static function Query($sql){
 		global $db; return DB::wQuery($db, $sql);
 	}
 	private static function wQuery($db, $sql) {
@@ -34,25 +62,36 @@ class DB
 		}
 		return stripslashes_deep($arr);
 	}
-	static function RootExec($sql){
+	static function RootExec($sql, $params = null){
 		$rootdb = DBConnection::GetRootDB();
-		return DB::wExec($rootdb, $sql);
+		return DB::wExec($rootdb, $sql, $params);
 	}
-	static function appExec($app, $sql){
+	static function AppExec($app, $sql, $params = null){
 		$appdb = DBConnection::GetDB($app);
-		return DB::wExec($appdb, $sql);
+		return DB::wExec($appdb, $sql, $params);
 	}
-	static function exec($sql){
-		global $db; return DB::wExec($db, $sql);
+	static function exec($sql, $params){
+		global $db; return DB::wExec($db, $sql, $params);
 	}
-	private static function wExec($db, $sql){
+	private static function wExec($db, $sql, $params){
 		$time_start = microtime(true);
-		$result = $db->exec($sql);
+		$stm = $db->prepare($sql);
+		$result = null;
+		if(!$stm || !$stm->execute($params))
+		{
+			throw new \Exception("SQL Exception in : ".$sql);
+		}
+		$result = $stm->rowCount();
+		//$result = $db->exec($sql);
 		$time_end = microtime(true);
 		$time = $time_end - $time_start;
 		if ($_ENV["config"]["env"] == Environment::DEV)
 		{
 			Debug::sql($sql, $time);
+		}
+		if ($result === false)
+		{
+			throw new Exception("SQL Exception");
 		}
 		return $result; // $db->exec incorrectly returns 0 when 1 row is affected
 	}
