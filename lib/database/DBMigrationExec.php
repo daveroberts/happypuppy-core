@@ -33,14 +33,13 @@ class DBMigrationExec
 			CREATE DATABASE `".$arr['dbname']."` ;
 			GRANT ALL PRIVILEGES ON `".$arr['dbname']."` . * TO '".$arr['username']."'@'%';
 		";
-		var_dump($sql); exit();
 		DB::RootExec($sql);
 		DB::RootExec("CREATE TABLE ".$dbname.".`dbversion` (`version` INT NOT NULL) ENGINE = innodb ;");
 		DB::RootExec("INSERT INTO ".$dbname.".`dbversion` (`version`)VALUES ('1');");
         DB::RootExec("FLUSH PRIVILEGES;");
 		return true;
 	}
-	private static function DropUserAndDB($dbname)
+	private static function DropUserAndDB($app)
 	{
 		require_once($_ENV["docroot"]."apps/".$app."/db/migrations.php");
 		$class_name = "\\".$app."\\Migrations";

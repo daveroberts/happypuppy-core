@@ -18,6 +18,7 @@
 		}
 		static function RunRoute($route, $url)
 		{
+			Router::LoadPlugins();
 			Router::LoadApplication($route);
 			Router::LoadController($route);
 			$_ENV["action"] = $route->action;
@@ -69,6 +70,11 @@
 				}
 				print($out);
 			}
+		}
+		private static function LoadPlugins()
+		{
+			$dir = $_ENV['docroot'].'/plugins/*.php';
+			include_dir($dir);
 		}
 		private static function LoadApplication($route)
 		{

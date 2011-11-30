@@ -116,7 +116,7 @@ class PhpRender implements iRender
 		$view_template = $this->getViewTemplate($controller_obj, $controller_name, $action);
 		$pos = strpos($view_template, 'apps');
 		$view_template = substr($view_template, $pos);
-		$out .= "View Tempalte: ".$view_template."\n";
+		$out .= "View Template: ".$view_template."\n";
 		return $out;
 	}
 	public static function render_arr($file, $vars)

@@ -16,6 +16,24 @@ function js_delete_confirm($confirm_text, $delete_id, $html_options = array())
 		" f.action = this.href;f.submit(); };return false;";
 	return $confirm_js;
 }
+
+function js($js_file)
+{
+	$path = $js_file;
+	$file_location = $_ENV["docroot"]."content/js/".$js_file;
+	if (file_exists($file_location))
+	{
+		$path = $_ENV["webroot"]."/js/".$js_file;
+	}
+	$file_location = $_ENV["docroot"]."apps/".$_ENV["app"]->name."/content/js/".$js_file;
+	if (file_exists($file_location))
+	{
+		$path = rawurl_from_location("/".$_ENV["app"]->name."/js/".$js_file);
+	}
+	$tag = "<script src=\"".$path."\" type=\"text/javascript\"></script>";
+	return $tag;
+}
+
 function css($css_file)
 {
 	$link = "<link rel='stylesheet' href='".rawurl_from_location("/css/".$css_file.".css")."' />";

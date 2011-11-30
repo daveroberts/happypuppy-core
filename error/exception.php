@@ -51,7 +51,7 @@
 	</head>
 	<body>
 		<h1>Exception</h1>
-		<h2 style="white-space: pre;"><?php echo $e->getMessage(); ?></h2>
+		<div style="font-family: sans-serif; font-size: large; color: #660000; white-space: pre-wrap;"><?php echo $e->getMessage(); ?></div>
 		<?php
 			$trace = $e->getTrace();
 			$params = array();
@@ -64,7 +64,7 @@
 			}
 			else
 			{
-				$rf = new ReflectionFunction($trace[0]['function']);
+				$rf = new \ReflectionFunction($trace[0]['function']);
 				foreach($rf->getParameters() as $param){
 					$params[] = $param->name;
 				}
