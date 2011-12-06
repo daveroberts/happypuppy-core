@@ -68,6 +68,7 @@ abstract class RelationCollection
 	}
 	protected abstract function doSetRelation($relation_name, $value);
 	private function isDirty($relation_name){
+		if (!isset($this->_dirty_marks[$relation_name])){ return false; }
 		return $this->_dirty_marks[$relation_name] == true;
 	}
 	

@@ -42,13 +42,28 @@ class DB
 		$rootdb = DBConnection::GetRootDB();
 		return DB::wQuery($rootdb, $sql);
 	}
-	static function Query($sql){
-		global $db; return DB::wQuery($db, $sql);
+	static function Query($sql, $params = null){
+		if($params != null && !is_array($params))
+		{
+			$args = func_get_args();
+			array_shift($args); //chop off $sql
+			$params = $args;
+		}
+		global $db; return DB::wQuery($db, $sql, $params);
 	}
-	private static function wQuery($db, $sql) {
-		$stmt = $db->prepare($sql);
+	private static function wQuery($db, $sql, $params) {
 		$time_start = microtime(true);
-		$stmt->execute();
+		$stm = $db->prepare($sql);
+		$result = null;
+		if(!$stm)
+		{
+			throw new \Exception("Could not create statement");
+		}
+		$result = $stm->execute($params);
+		if (!$result)
+		{
+			throw new \Exception("SQL Exception in : ".$sql);
+		}
 		$time_end = microtime(true);
 		$time = $time_end - $time_start;
 		if ($_ENV["config"]["env"] == Environment::DEV)
@@ -56,7 +71,7 @@ class DB
 			Debug::sql($sql, $time);
 		}
 		$arr = array();
-		while($row = $stmt->fetch(\PDO::FETCH_ASSOC))
+		while($row = $stm->fetch(\PDO::FETCH_ASSOC))
 		{
 			$arr[] = $row;
 		}
@@ -70,7 +85,13 @@ class DB
 		$appdb = DBConnection::GetDB($app);
 		return DB::wExec($appdb, $sql, $params);
 	}
-	static function exec($sql, $params){
+	static function Exec($sql, $params = null){
+		if($params != null && !is_array($params))
+		{
+			$args = func_get_args();
+			array_shift($args); //chop off $sql
+			$params = $args;
+		}
 		global $db; return DB::wExec($db, $sql, $params);
 	}
 	private static function wExec($db, $sql, $params){

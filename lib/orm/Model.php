@@ -17,6 +17,7 @@ require('IdentityMap.php');
 //TODO form validation
 //TODO If you have a person, how to create a bank account under that person
 //FIXME return empty array if none in a many association, not null
+//TODO hasProperty relation: Teacher has property person; can say $teacher->firstname and $teacher->save
 abstract class Model
 {
 	private $_tablename; // use setter to set.  Get with $obj->tablename (underscore to prevent DB field clash)
@@ -193,16 +194,7 @@ abstract class Model
 		$this->_relations->buildFromForm($arr);
 	}
 	public static function FindBySQL($sql, $params){
-		$num_args = func_num_args();
-		$args = array();
-		if ($num_args > 1){
-			$args = func_get_args();
-			array_shift($args); // chop off sql
-		}
-		foreach($args as $arg){
-			$sql = Model::replaceNextArg($sql, $arg);
-		}
-		$db_results = DB::query($sql);
+		$db_results = DB::Query($sql, $params);
 		$klass = get_called_class();
 		$obj = new $klass();
 		return $obj->buildAll($db_results);

@@ -32,7 +32,8 @@ class HasManyRelations extends RelationCollection
 		$this->_cached_values[$name] = array();
 		
 		// if we have the foreign table fully loaded, then just pull cached results
-		if (Model::$all_rows_loaded[$foreign_table])
+		if (isset(Model::$all_rows_loaded[$foreign_table]) &&
+					Model::$all_rows_loaded[$foreign_table])
 		{
 			foreach(IdentityMap::GetAll($foreign_table) as $obj)
 			{
