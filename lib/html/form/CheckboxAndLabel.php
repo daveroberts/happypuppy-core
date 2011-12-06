@@ -14,7 +14,7 @@ class CheckboxAndLabel
 	
 	function toString()
 	{
-		$label = new HtmlLabel()
+		$label = new HtmlLabel();
 		if (!is_array($this->selected_ids))
 		{
 			$this->selected_ids = array($this->selected_ids);
