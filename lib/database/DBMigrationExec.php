@@ -23,9 +23,18 @@ class DBMigrationExec
 	}
 	private static function CreateDB($dbname)
 	{
-		require_once($_ENV["docroot"]."apps/".$dbname."/db/migrations.php");
+		$filename = $_ENV["docroot"]."apps/".$dbname."/db/migrations.php";
+		if (!file_exists($filename))
+		{
+			throw new \Exception("Could not find db migration file: ".$filename);
+		}
+		require_once($filename);
 		$class_name = "\\".$dbname."\\Migrations";
 		$method_name = "CreateUserAndDB";
+		if (!method_exists($class_name, $method_name))
+		{
+			throw new \Exception("No method ".$method_name." exists in class ".$class_name);
+		}
 		$arr = $class_name::$method_name();
 		$sql = "
 			CREATE USER '".$arr['username']."'@'%' IDENTIFIED BY '".$arr['password']."';

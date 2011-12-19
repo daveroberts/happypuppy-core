@@ -11,7 +11,6 @@ class BelongsToRelations extends RelationCollection
 	}
 	public function doBuildRelation($name, &$debug){
 		$relation = $this->_relations[$name];
-		$sort_by = $relation->sort_by;
 		$foreign_table = $relation->foreign_table;
 		$foreign_class = $relation->foreign_class;
 		$foreign_key = $relation->foreign_key;

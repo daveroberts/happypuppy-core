@@ -133,4 +133,15 @@ class PhpRender implements iRender
 	}
 }
 
+function partial($file, $to_pass)
+{
+	$args = func_get_args();
+	array_shift($args);
+	if (count($args) == 2)
+	{
+		return PHPRender::render($file, $args[0], $args[1]);
+	}
+	return PHPRender::render_arr($file, $args[0]);
+}
+
 ?>

@@ -19,7 +19,7 @@ class belongsToRelation extends Relation
 				$foreign_table = Inflector::remove_underscores($name);
 			}
 		}
-		if (strcmp($foreign_key, '') == 0) { $foreign_key = strtolower($refl->getShortName()).'_id'; }
+		if (strcmp($foreign_key, '') == 0) { $foreign_key = $foreign_table.'_id'; }
 		$this->name = $name;
 		$this->foreign_class = $foreign_class;
 		$this->foreign_table = $foreign_table;

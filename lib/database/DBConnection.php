@@ -24,17 +24,19 @@ class DBConnection
 	}
 	public static function GetDBName($app)
 	{
-		if (file_exists($_ENV["docroot"]."apps/".$app."/db/conf.php"))
+		$filename = $_ENV["docroot"]."apps/".$app."/db/conf.php";
+		if (!file_exists($filename))
 		{
-			$klass = "\\".$app."\DBConf";
-			require_once($_ENV["docroot"]."apps/".$app."/db/conf.php");
-			if (method_exists($klass, "DB"))
-			{
-				$dbsettings = $klass::DB();
-				return $dbsettings["dbname"];
-			}
+			throw new \Exception("Could not find db configuration file at: ".$filename);
 		}
-		return null;
+		$klass = "\\".$app."\DBConf";
+		require_once($_ENV["docroot"]."apps/".$app."/db/conf.php");
+		if (!method_exists($klass, "DB"))
+		{
+			throw new \Exception("No method DB exists on class: ".$klass);
+		}
+		$dbsettings = $klass::DB();
+		return $dbsettings["dbname"];
 	}
 	public static $DBs = array();
 	public static function GetDB($app)

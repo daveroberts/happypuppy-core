@@ -340,7 +340,8 @@ abstract class Model
 		$classname = get_called_class();
 		$model = new $classname();
 
-		if (self::$all_rows_loaded[$model->tablename] && $debug == false)
+		if (array_key_exists($model->tablename, self::$all_rows_loaded) && 
+			self::$all_rows_loaded[$model->tablename] && $debug == false)
 		{
 			return IdentityMap::GetAll($model->tablename);
 		}

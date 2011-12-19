@@ -38,9 +38,9 @@ class DB
 		$dbh->setAttribute(\PDO::ATTR_AUTOCOMMIT,TRUE);
 		return $value;
 	}
-	static function RootQuery($sql){
+	static function RootQuery($sql, $params = null){
 		$rootdb = DBConnection::GetRootDB();
-		return DB::wQuery($rootdb, $sql);
+		return DB::wQuery($rootdb, $sql, $params);
 	}
 	static function Query($sql, $params = null){
 		if($params != null && !is_array($params))
@@ -52,6 +52,10 @@ class DB
 		global $db; return DB::wQuery($db, $sql, $params);
 	}
 	private static function wQuery($db, $sql, $params) {
+		if ($db == null)
+		{
+			throw new \Exception("Could not connect to database");
+		}
 		$time_start = microtime(true);
 		$stm = $db->prepare($sql);
 		$result = null;
@@ -95,6 +99,10 @@ class DB
 		global $db; return DB::wExec($db, $sql, $params);
 	}
 	private static function wExec($db, $sql, $params){
+		if ($db == null)
+		{
+			throw new \Exception("Could not connect to database");
+		}
 		$time_start = microtime(true);
 		$stm = $db->prepare($sql);
 		$result = null;

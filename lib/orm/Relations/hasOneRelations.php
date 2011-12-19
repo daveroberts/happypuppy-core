@@ -11,7 +11,6 @@ class HasOneRelations extends RelationCollection
 	}
 	protected function doBuildRelation($name, &$debug){
 		$relation = $this->_relations[$name];
-		$sort_by = $relation->sort_by;
 		$foreign_table = $relation->foreign_table;
 		$foreign_class = $relation->foreign_class;
 		$foreign_model = new $foreign_class();
@@ -22,10 +21,6 @@ class HasOneRelations extends RelationCollection
 		$sql = "SELECT a.* FROM ".$foreign_table." a ";
 		$sql .=" LEFT JOIN ".$tablename." b ON a.".$foreign_key.'=b.'.$pk." ";
 		$sql .=" WHERE b.".$pk."='".$pk_val."' ";
-		if ($sort_by != "")
-		{
-			$sql .= " ORDER BY a.".$sort_by." ";
-		}
 		
 		$debug[] = $sql;
 		
