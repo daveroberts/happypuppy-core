@@ -3,6 +3,7 @@ namespace HappyPuppy;
 require("Relations/Fields.php");
 require("UniqueFieldValidator.php");
 require("Relations/Relations.php");
+require("sqlBuilder.php");
 require("sqlFinder.php");
 require('IdentityMap.php');
 
@@ -193,13 +194,15 @@ abstract class Model
 		$this->_fields->buildFromForm($arr);
 		$this->_relations->buildFromForm($arr);
 	}
-	public static function FindBySQL($sql, $params){
+	public static function FindBySQL($sql){
+		$params = func_get_args();
+		array_shift($params);
 		$db_results = DB::Query($sql, $params);
 		$klass = get_called_class();
 		$obj = new $klass();
 		return $obj->buildAll($db_results);
 	}
-	public static function Count($args, &$debug = array()){
+	public static function Count($args = array(), &$debug = array()){
 		$classname = get_called_class();
 		$model = new $classname();
 		return $model->pCount($args, $debug);
