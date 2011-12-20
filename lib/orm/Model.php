@@ -207,7 +207,7 @@ abstract class Model
 		$model = new $classname();
 		return $model->pCount($args, $debug);
 	}
-	public function pCount($args, $debug, &$debug_log){
+	public function pCount($args, $debug){
 		$args["count"] = true;
 		return $this->_sqlFinder->find($args, $debug);
 	}
