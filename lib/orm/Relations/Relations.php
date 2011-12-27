@@ -63,7 +63,19 @@ class Relations
 	// return the values of the relation object
 	public function getRelationValues($relation_name, &$debug){
 		if ($this->_has_many->hasRelation($relation_name)){ return $this->_has_many->getRelationValues($relation_name, $debug); }
-		if ($this->_belongs_to->hasRelation($relation_name)){ return $this->_belongs_to->getRelationValues($relation_name, $debug); }
+		if ($this->_belongs_to->hasRelation($relation_name))
+		{
+			$relation = $this->_belongs_to->getRelationType($relation_name);
+			$fk = $relation->foreign_key;
+			if (IdentityMap::is_set($relation->foreign_table, $this->_model->$fk))
+			{
+				return IdentityMap::get($relation->foreign_table, $this->_model->$fk);
+			}
+			else
+			{
+				return $this->_belongs_to->getRelationValues($relation_name, $debug);
+			}
+		}
 		if ($this->_has_one->hasRelation($relation_name)){ return $this->_has_one->getRelationValues($relation_name, $debug); }
 		if ($this->_habtm->hasRelation($relation_name)){ return $this->_habtm->getRelationValues($relation_name, $debug); }
 		throw new \Exception("No relationship found with name ".$relation_name);
