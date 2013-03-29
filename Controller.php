@@ -178,14 +178,14 @@ class Controller
 					}
   				}
 			}
-  			foreach($routes as $route)
-  			{
-  				if (strcasecmp($_ENV["config"]["default_app"], $this->app_instance->name) == 0)
+			foreach($routes as $route)
+			{
+				if (strcasecmp($_ENV["config"]["default_app"], $this->app_instance->name) == 0)
 				{
 					$route->omit_app = true;
 				}
 				$route_list->AddRoute($route);
-  			}
+			}
   		}
 	}
 	private static function GetCustomRoutes($docstring)
