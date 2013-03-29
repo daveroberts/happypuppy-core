@@ -36,6 +36,8 @@ class Controller
 	
 	private $before = null;	
 	private $default_action = null;
+	private $_isResource = null;
+	private $__name = null;
 	
 	// These are helper methods you may call
 	public function renderText($text = null){
@@ -111,6 +113,17 @@ class Controller
 			throw new \Exception("Your controller ".$refl->getName()." can't declare a constructor.<br />\nInstead, add a function named __init() and place your constructor's code there.");
 		}
 		
+		if ($this->isResource())
+		{
+			$route_list->AddRoute(new Route($this->app_instance->name, $this->__name(), 'list', array(), 'GET'));
+			$route_list->AddRoute(new Route($this->app_instance->name, $this->__name(), 'show', array('id'), 'GET'));
+			$route_list->AddRoute(new Route($this->app_instance->name, $this->__name(), 'new', array(), 'GET'));
+			$route_list->AddRoute(new Route($this->app_instance->name, $this->__name(), 'create', array(), 'POST'));
+			$route_list->AddRoute(new Route($this->app_instance->name, $this->__name(), 'update', array('id'), 'PUT'));
+			$route_list->AddRoute(new Route($this->app_instance->name, $this->__name(), 'edit', array('id'), 'GET'));
+			$route_list->AddRoute(new Route($this->app_instance->name, $this->__name(), 'destroy', array('id'), 'DELETE'));
+		}
+		
   		$methods = $refl->getMethods();
   		foreach($methods as $method)
   		{
@@ -159,7 +172,7 @@ class Controller
   			else
   			{
 				$route = clone $master_route;
-				$routes[] = $route;
+				//$routes[] = $route;
 				// if this is the default action, add a route
 				$defaultAction = $this->getDefaultAction();
 				if (is_equal($method_name, $defaultAction))
@@ -187,6 +200,36 @@ class Controller
 				$route_list->AddRoute($route);
 			}
   		}
+	}
+	private function __name()
+	{
+		if ($this->__name != null){ return $this->__name; }
+		$refl = new \ReflectionClass($this); 
+		$controller_name = substr($refl->name, 0, strlen($refl->name)-10);
+		$slashpos = strpos($controller_name, '\\');
+		if ($slashpos != -1)
+		{
+			$controller_name = substr($controller_name, $slashpos + 1);
+		}
+		$controller_name = strtolower($controller_name);
+		$this->__name = $controller_name;
+		return $this->__name;
+	}
+	private function isResource()
+	{
+		if ($this->_isResource != null){ return $this->_isResource; }
+		$refl = new \ReflectionClass($this);
+		$docstring = $refl->getDocComment();
+		$this->_isResource = false;
+		foreach(Annotation::parseDocstring($docstring) as $annotation=>$vals)
+		{
+			if (strcasecmp($annotation, 'Resource') == 0)
+			{
+				$this->_isResource = true;
+				break;
+			}
+		}
+		return $this->_isResource;
 	}
 	private static function GetCustomRoutes($docstring)
 	{
