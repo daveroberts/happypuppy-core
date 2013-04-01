@@ -10,6 +10,14 @@ function include_dir($pattern)
 	ob_end_clean();
 }
 
+function http_accept(){
+	if (stristr($_SERVER['HTTP_ACCEPT'], "application/json")) {
+		return 'json';
+	} else {
+		return 'html';
+	}
+}
+
 function isAjaxRequest(){
 	return 	!empty($_SERVER['HTTP_X_REQUESTED_WITH']) &&
 			strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';

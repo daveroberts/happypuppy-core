@@ -53,7 +53,7 @@
 			}
 			$current[] = $route;
 		}
-		function findRoute($url)
+		function findRoute($url, $method)
 		{
 			$matchingSubtrees = array(&$this->route_tree);
 			$matchingRoutes = array();
@@ -89,14 +89,23 @@
 				}
 				$matchingSubtrees = $nextLevelSubtrees;
 			}
+			$potentialRoutes = array();
 			foreach($matchingSubtrees as $matchingSubtree)
 			{
 				foreach($matchingSubtree as $rts)
 				{
 					if (!is_array($rts))
 					{
-						array_push($matchingRoutes, $rts);
+						array_push($potentialRoutes, $rts);
 					}
+				}
+			}
+			// filter by method
+			foreach($potentialRoutes as $potentialRoute)
+			{
+				if ($potentialRoute->method == $method)
+				{
+					array_push($matchingRoutes, $potentialRoute);
 				}
 			}
 			$num_routes = count($matchingRoutes);

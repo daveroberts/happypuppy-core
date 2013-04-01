@@ -5,7 +5,7 @@
 	require_once('Application.php');
 	class Router
 	{
-		static function URLToRoute($url)
+		static function URLToRoute($url, $method)
 		{
 			$routetree = Cache::get("routetree");
 			if ($routetree == null || $_ENV['config']['env'] == Environment::DEV)
@@ -13,7 +13,7 @@
 				$routetree = new RouteTree();
 				Cache::set("routetree", $routetree);
 			}
-			$route = $routetree->findRoute($url);
+			$route = $routetree->findRoute($url, $method);
 			return $route;
 		}
 		static function RunRoute($route, $url)

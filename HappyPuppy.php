@@ -66,7 +66,7 @@ class HappyPuppy
 		// if we are displaying info, set the URL here
 		$url = $this->setInfoPageURL($url);
 		
-		$route = Router::URLToRoute($url);
+		$route = Router::URLToRoute($url, $_SERVER['REQUEST_METHOD']);
 		if ($route != null)
 		{
 			Router::RunRoute($route, $url);
@@ -90,7 +90,7 @@ class HappyPuppy
 				// no need to set, this is only used in DEV anyway
 				//$url = $this->setInfoPageURL($url);
 				
-				$route = Router::URLToRoute($url);
+				$route = Router::URLToRoute($url, $_SERVER['REQUEST_METHOD']);
 				if ($route != null)
 				{
 					Router::RunRoute($route, $url);

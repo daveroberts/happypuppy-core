@@ -34,9 +34,8 @@ class Controller
 	var $json_only = false;
 	var $responds_to = '';
 	
-	private $before = null;	
+	private $__before = null;	
 	private $default_action = null;
-	private $_isResource = null;
 	private $__name = null;
 	
 	// These are helper methods you may call
@@ -113,15 +112,37 @@ class Controller
 			throw new \Exception("Your controller ".$refl->getName()." can't declare a constructor.<br />\nInstead, add a function named __init() and place your constructor's code there.");
 		}
 		
-		if ($this->isResource())
+		if ($this->__isResource())
 		{
-			$route_list->AddRoute(new Route($this->app_instance->name, $this->__name(), 'list', array(), 'GET'));
-			$route_list->AddRoute(new Route($this->app_instance->name, $this->__name(), 'show', array('id'), 'GET'));
-			$route_list->AddRoute(new Route($this->app_instance->name, $this->__name(), 'new', array(), 'GET'));
-			$route_list->AddRoute(new Route($this->app_instance->name, $this->__name(), 'create', array(), 'POST'));
-			$route_list->AddRoute(new Route($this->app_instance->name, $this->__name(), 'update', array('id'), 'PUT'));
-			$route_list->AddRoute(new Route($this->app_instance->name, $this->__name(), 'edit', array('id'), 'GET'));
-			$route_list->AddRoute(new Route($this->app_instance->name, $this->__name(), 'destroy', array('id'), 'DELETE'));
+			$master_route = new Route($this->app_instance->name, $this->__name(), '');
+			$list_route = clone $master_route;
+			$list_route->action = "list";
+			$list_route->before = $this->__getBeforeFilters();
+			$list_route->customRouteString = '/'.$this->__name();
+			$route_list->AddRoute($list_route);
+			$show_route = clone $master_route;
+			$show_route->action = "show";
+			$show_route->before = $this->__getBeforeFilters();
+			$show_route->customRouteString = '/'.$this->__name().'/$id';
+			$route_list->AddRoute($show_route);
+			$create_route = clone $master_route;
+			$create_route->action = "create";
+			$create_route->method = "POST";
+			$create_route->before = $this->__getBeforeFilters();
+			$create_route->customRouteString = '/'.$this->__name();
+			$route_list->AddRoute($create_route);
+			$update_route = clone $master_route;
+			$update_route->action = "update";
+			$update_route->method = "PUT";
+			$update_route->before = $this->__getBeforeFilters();
+			$update_route->customRouteString = '/'.$this->__name().'/$id';
+			$route_list->AddRoute($update_route);
+			$destroy_route = clone $master_route;
+			$destroy_route->action = "delete";
+			$destroy_route->method = "DELETE";
+			$destroy_route->before = $this->__getBeforeFilters();
+			$destroy_route->customRouteString = '/'.$this->__name().'/$id';
+			$route_list->AddRoute($destroy_route);
 		}
 		
   		$methods = $refl->getMethods();
@@ -172,7 +193,10 @@ class Controller
   			else
   			{
 				$route = clone $master_route;
-				//$routes[] = $route;
+				if (!$this->__isResource())
+				{
+					$routes[] = $route;
+				}
 				// if this is the default action, add a route
 				$defaultAction = $this->getDefaultAction();
 				if (is_equal($method_name, $defaultAction))
@@ -215,22 +239,7 @@ class Controller
 		$this->__name = $controller_name;
 		return $this->__name;
 	}
-	private function isResource()
-	{
-		if ($this->_isResource != null){ return $this->_isResource; }
-		$refl = new \ReflectionClass($this);
-		$docstring = $refl->getDocComment();
-		$this->_isResource = false;
-		foreach(Annotation::parseDocstring($docstring) as $annotation=>$vals)
-		{
-			if (strcasecmp($annotation, 'Resource') == 0)
-			{
-				$this->_isResource = true;
-				break;
-			}
-		}
-		return $this->_isResource;
-	}
+	protected function __isResource() { return false; }
 	private static function GetCustomRoutes($docstring)
 	{
 		$return = array();
@@ -246,10 +255,10 @@ class Controller
 		}
 		return $return;
 	}
-	private function getBeforeFilters()
+	private function __getBeforeFilters()
 	{
-		if ($this->before != null){ return $this->before; }
-		$this->before = array();
+		if ($this->__before != null){ return $this->__before; }
+		$this->__before = array();
 		$refl = new \ReflectionClass($this);
 		$docstring = $refl->getDocComment();
 		foreach(Annotation::parseDocstring($docstring) as $annotation=>$vals)
@@ -260,7 +269,7 @@ class Controller
 				{
 					foreach($methods as $method)
 					{
-						$this->before[] = $method;
+						$this->__before[] = $method;
 					}
 				}
 			}
@@ -273,11 +282,11 @@ class Controller
 				{
 					foreach($methods as $not_before_method)
 					{
-						foreach($this->before as $k=>$b_method)
+						foreach($this->__before as $k=>$b_method)
 						{
 							if (is_equal($b_method, $not_before_method))
 							{
-								unset($this->before[$k]);
+								unset($this->__before[$k]);
 								break;
 							}
 						}
@@ -285,11 +294,11 @@ class Controller
 				}
 			}
 		}
-		return $this->before;
+		return $this->__before;
 	}
 	private function getActionBeforeFilters($method)
 	{
-		$before = $this->getBeforeFilters();
+		$before = $this->__getBeforeFilters();
 		$rm = new \ReflectionMethod($method->class, $method->name);
 		$docstring = $rm->getDocComment();
 		foreach(Annotation::parseDocstring($docstring) as $annotation=>$vals)
@@ -329,7 +338,7 @@ class Controller
 	}
 	private function isRoute($method)
 	{
-		$before = $this->getBeforeFilters();
+		$before = $this->__getBeforeFilters();
 		$rm = new \ReflectionMethod($method->class, $method->name);
 		$docstring = $rm->getDocComment();
 		foreach(Annotation::parseDocstring($docstring) as $annotation=>$vals)

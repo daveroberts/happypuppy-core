@@ -1,6 +1,7 @@
 <?php
 	namespace HappyPuppy; // Woof!
 	require_once('Controller.php');
+	require_once('ResourceController.php');
 	class Route
 	{
 		var $customRouteString;
@@ -12,15 +13,15 @@
 		var $controller;
 		var $action;
 		var $params;
-		var $responds_to = 'GET';
+		var $method = 'GET';
 
 		var $before = array();
-		function __construct($app, $controller, $action, $params = array(), $responds_to = 'GET')
+		function __construct($app, $controller, $action, $params = array(), $method = 'GET')
 		{
 			$this->app = $app;
 			$this->controller = $controller;
 			$this->action = $action;
-			$this->responds_to = $responds_to;
+			$this->method = $method;
 			$this->params = $params;
 		}
 		function GetRouteString()
